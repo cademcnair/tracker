@@ -1,0 +1,11 @@
+{
+  "name": "tracker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "cade <cademcnair2009@icloud.com>",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}
