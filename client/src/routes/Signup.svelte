@@ -52,11 +52,13 @@
         return;
       }
     }
-    db = { ...db, user, pass, store_method }
+    db.user = user;
+    db.pass = pass;
+    db.store_method = store_method;
     localStorage.setItem("store_method", store_method);
     localStorage.setItem("user", user);
     localStorage.setItem("pass", pass);
-    page = "settings";
+    page = "home";
   }
 </script>
 

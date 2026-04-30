@@ -1,5 +1,4 @@
 export type Macro = "calories" | "protein" | "carbs" | "fat" | "saturated_fat" | "sodium";
-export type MacroSettingNames = "goal_calories" | "goal_protein" | "goal_carbs" | "goal_fat" | "max_saturated_fat" | "max_sodium";
 export type StoreMethod = "client" | "server";
 
 export interface Food {
@@ -49,7 +48,7 @@ export interface Weight {
 export interface Day {
   weights: Weight[];
   workouts: Workout[];
-  foods: [Food, number][];
+  foods: Food[];
   date: number;
 }
 
@@ -60,7 +59,6 @@ export interface User {
   store_method: StoreMethod;
   days: Day[];
   page: string;
-  foods: Food[];
 }
 
 export type Props = {

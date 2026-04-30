@@ -2,7 +2,7 @@
   const SERVER = "http://localhost:3000/"
 
   import { onMount } from "svelte";
-  import type { User, Day, Food } from "./lib/types";
+  import type { User, Day } from "./lib/types";
 
   let db: User = $state({
     user: "",
@@ -18,8 +18,7 @@
     },
     store_method: "client",
     page: "signup",
-    days: [] as Day[],
-    foods: [] as Food[]
+    days: [] as Day[]
   });
   let page: string = $state("signup");
   let error: any = $state(null);
@@ -52,21 +51,9 @@
     }
     page = db.page
     update = true
-    if (localStorage.getItem("store_method")) {
-      if (find_today(db.days) === undefined) {
-        db.days.push({ 
-          date: today(),
-          foods: [],
-          workouts: [],
-          weights: []
-        })
-        console.log(db)
-      }
-    }
   })
 
   $effect(() => {
-    console.log(update)
     if (!update) return
 
     console.log(1)
@@ -96,8 +83,6 @@
   })
 
   import Signup from "./routes/Signup.svelte";
-    import Settings from "./routes/Settings.svelte";
-    import { find_today, today } from "./lib/utils";
 </script>
 
 {#if page != "signup" && page != "error"}
@@ -109,38 +94,27 @@
 <div class="content">
   {#if page == "signup"}
     <Signup bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
-  {:else if page == "settings"}
-    <Settings bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {/if}
 </div>
 
 {#if page != "signup" && page != "error"}
-  <div class="spacer"></div>
   <div class="footer">
     <i style:font-size="1rem">Hello, {db.user}!</i><br>
     <div class="footer-place">
       Current page: {page.split("").map((i,d) => d == 0 ? i.toUpperCase() : i).join("")}
     </div>
     <div class="footer-nav">
-      Go to page <select onchange={e => page = e.currentTarget.value}>
-        {#each ["home", "settings"] as p, i}
-          <option value={p} selected={page == p}>{p.split("").map((i,d) => d == 0 ? i.toUpperCase() : i).join("")}</option>
-        {/each}
-      </select>
+
     </div>
   </div>
 {/if}
 
 <style scoped lang="scss">
+  .footer-place, .footer-nav {
+    display: inline-block;
+  }
   .footer-nav {
-    float: right;
-    margin-right: 2rem;
-  }
-  select {
-    font-size: 1.5rem;
-  }
-  :global(button) {
-    cursor: pointer;
+    margin-left: 2rem;
   }
   :global(html), :global(body) {
     margin: 0;
@@ -160,10 +134,6 @@
       }
     }
   }
-  .spacer {
-    height: 10rem;
-    width: 1rem;
-  }
   .footer {
     position: fixed;
     bottom: 0;
@@ -173,13 +143,8 @@
     padding: 1rem;
     padding-top: 0.5rem;
     font-size: 1.5rem;
-    background-color: white;
-    > div {
-      display: inline-block;
-    }
   }
   .content {
     padding: 20px;
-    padding-bottom: 40px;
   }
 </style>
