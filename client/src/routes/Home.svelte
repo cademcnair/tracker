@@ -54,6 +54,8 @@
       return foods.filter(f => s.length == 0 || !isNaN(Number(s)) || key_words.every(k => f.name.toLowerCase().includes(k.toLowerCase()))).filter(f => round(f.calories/f.protein, 2) <= num)
     }
   }
+
+  let main = $state("none")
 </script>
 
 {#if editing_food}
@@ -78,8 +80,14 @@
   {#each db.settings.cares_about as macro}
     {@const report = totals[macro]}
     {@const goal = db.settings[MACRO_SETTING[macro]]}
-    <details class="macro" ontoggle = {e => document.querySelectorAll<HTMLDetailsElement>(".macro").forEach(d => d.open = e.currentTarget.open)}>
-      <summary><b>{NICE_MACROS[macro][1]}: {goal} - {round(report.total, 2)} = {round(goal - report.total, 2)}{NICE_MACROS[macro][2]} left ({round((goal == 0 ? 1 : report.total/goal)*100, 1)}%)</b></summary>
+    <details class="macro" ontoggle = {e => {
+      if (main == "none") {main = macro; setTimeout(() => main = "none", 100)}
+      document.querySelectorAll<HTMLDetailsElement>(".macro").forEach((d, index, arr) => d.open = e.currentTarget.open)
+      if (main == macro) {
+        e.currentTarget.scrollIntoView({block: "center"})
+      }
+    }}>
+      <summary><b>{NICE_MACROS[macro][1]}: {goal} - {round(report.total, 2)} = <span>{round(goal - report.total, 2)}{NICE_MACROS[macro][2]} left</span> ({round((goal == 0 ? 1 : report.total/goal)*100, 1)}%)</b></summary>
       <ul>
         {#each report.foods as food}
           <li>

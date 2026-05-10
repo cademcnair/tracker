@@ -250,6 +250,7 @@
     if (normal_command) {
       const food = narrow_foods(db.foods, command)[0]
       const a = amount(command)
+      if (a == 0 || food === undefined || food === null) {command = ""; return;}
       ;(find_today(db.days) as Day).foods.push([food, a])
       db = {...db}; command = ""
     } else if (command.length > 0){
@@ -323,6 +324,11 @@
 
 
 <style lang="scss">
+  :global(span) {
+    background-color: yellow;
+    font-weight: 700;
+    font-style: italic;
+  }
   :global(.food-preview) {
     font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     padding-left: 1rem;
@@ -333,11 +339,6 @@
     button {
       cursor: pointer;
       font-size: 1.25rem;
-    }
-    :global(span) {
-      background-color: yellow;
-      font-weight: 700;
-      font-style: italic;
     }
     p {
       font-size: 1.5rem;
