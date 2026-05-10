@@ -38,6 +38,22 @@
   function delete_food(id: string) {
     
   }
+  let search = $state(""), cal_prot = $state(false)
+  function filter_foods(foods: Food[], s: string, m: boolean) {
+    if (s.length == 0 && !cal_prot) return foods
+    let key_words = s.split(" ");
+    if (!m) {
+      if (isNaN(Number(search))) {
+        return foods.filter(f => key_words.every(k => f.name.toLowerCase().includes(k.toLowerCase())))
+      } else {
+        return [foods[Number(search)]]
+      }
+    } else {
+      let num = (!isNaN(Number(s)) && s.length != 0) ? Number(s) : (db.settings.goal_calories - totals.calories.total)/(db.settings.goal_protein - totals.protein.total)
+      console.log(num)
+      return foods.filter(f => s.length == 0 || !isNaN(Number(s)) || key_words.every(k => f.name.toLowerCase().includes(k.toLowerCase()))).filter(f => round(f.calories/f.protein, 2) <= num)
+    }
+  }
 </script>
 
 {#if editing_food}
@@ -91,8 +107,15 @@
   <p>
     Goal: {round(db.settings.goal_calories / db.settings.goal_protein, 2)}kcal/g
   </p>
+  <input type="text" placeholder="Search" bind:value={search}>
+  <label>
+    <input type="checkbox" bind:checked={cal_prot}>kcal/g mode
+  </label>
+  {#if search.length > 0 || cal_prot}
+    <br><b>{filter_foods(db.foods, search, cal_prot).length} result{filter_foods(db.foods, search, cal_prot).length == 1 ? "" : "s"}</b>
+  {/if}
   <ol>
-    {#each db.foods as food}
+    {#each filter_foods(db.foods, search, cal_prot) as food}
       <li value={food.id}>
         {food.name}{#each db.settings.cares_about as macro, d}, {food[macro]}{NICE_MACROS[macro][2]}{/each}
         <button>{round(food.calories/food.protein, 2)}kcal/g</button>

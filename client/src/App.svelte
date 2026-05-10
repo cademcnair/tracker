@@ -218,6 +218,7 @@
     prot: [add_protein, add_protein_message],
     carbs: [add_carbs, add_carbs_message],
     carb: [add_carbs, add_carbs_message],
+    car: [add_carbs, add_carbs_message],
     fat: [add_fat, add_fat_message],
     fats: [add_fat, add_fat_message],
     saturated: [add_saturated_fat, add_saturated_fat_message],
