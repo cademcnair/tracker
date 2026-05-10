@@ -163,6 +163,22 @@
 
 <div class="macros">
   {#each db.settings.cares_about as macro}
+    {@const add_func = () => {
+      let new_food = {
+        name: `Simple add (${macro})`,
+        id: "-1",
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        saturated_fat: 0,
+        sodium: 0
+      }
+      const e = document.querySelector(`input[data-macro="${macro}"]`) as HTMLInputElement
+      new_food[macro] = Number(e.value); e.value = ""
+      today.foods.push([new_food, 1])
+      db = {...db}
+    }}
     {@const report = totals[macro]}
     {@const goal = db.settings[MACRO_SETTING[macro]]}
     <details class="macro" ontoggle = {e => {
@@ -182,6 +198,8 @@
           </li>
         {/each}
       </ul>
+      <input placeholder="Simple add" type="number" data-macro={macro} onkeyup={e => {if (e.key == "Enter") add_func()}}>
+      <button onclick={add_func}>add</button>
     </details>
   {/each}
   <details class="macro">

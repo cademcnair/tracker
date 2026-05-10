@@ -114,7 +114,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      name: "Simple add (calories)",
       calories: amount(command),
       protein: 0,
       carbs: 0,
@@ -131,7 +131,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      name: "Simple add (protein)",
       calories: 0,
       protein: amount(command),
       carbs: 0,
@@ -148,7 +148,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      name: "Simple add (carbs)",
       calories: 0,
       protein: 0,
       carbs: amount(command),
@@ -165,7 +165,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      name: "Simple add (fat)",
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -182,7 +182,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      name: "Simple add (saturated fat)",
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -199,7 +199,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add",
+      name: "Simple add (sodium)",
       calories: 0,
       protein: 0,
       carbs: 0,
