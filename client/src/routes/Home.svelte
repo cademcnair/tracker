@@ -182,9 +182,9 @@
     }}
     {@const report = totals[macro]}
     {@const goal = db.settings[MACRO_SETTING[macro]]}
-    <details class="macro" ontoggle = {e => {
+    <details class="macro single-macro" ontoggle = {e => {
       if (main == "none") {main = macro; setTimeout(() => main = "none", 100)}
-      document.querySelectorAll<HTMLDetailsElement>(".macro").forEach(d => d.open = e.currentTarget.open)
+      document.querySelectorAll<HTMLDetailsElement>(".single-macro").forEach(d => d.open = e.currentTarget.open)
       if (main == macro) {
         e.currentTarget.scrollIntoView({block: "center"})
       }
