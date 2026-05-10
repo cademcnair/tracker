@@ -19,14 +19,14 @@ export function round (num: number, digits: number) {
 
 export const clone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj))
 
-export type FindTotalsReport = { [k in Macro]: {total: number, foods: [string, number, number][]}};
+export type FindTotalsReport = { [k in Macro]: {total: number, foods: [string, number, number, string, number][]}};
 export function find_totals(foods: [Food, number][]): FindTotalsReport {
   let report = {} as FindTotalsReport
   for (let i = 0; i < MACROS.length; ++i) {
     let macro = MACROS[i]
     report[macro] = {
       total: foods.map(i => i[0][macro] * i[1]).reduce((a, b) => a+b, 0),
-      foods: foods.map((i, d) => [i[0].name, round(i[0][macro] * i[1], 2), d])
+      foods: foods.map((i, d) => [i[0].name, round(i[0][macro] * i[1], 2), d, i[0].id, i[1]])
     }
   }
   return report

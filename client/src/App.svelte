@@ -6,7 +6,7 @@
   import Signup from "./routes/Signup.svelte";
   import Home from "./routes/Home.svelte";
   import Settings from "./routes/Settings.svelte";
-  import { find_today, today, capitalize, NICE_MACROS, round } from "./lib/utils";
+  import { find_today, today, capitalize, NICE_MACROS, round, clone } from "./lib/utils";
 
   let db: User = $state({
     user: "",
@@ -251,7 +251,7 @@
       const food = narrow_foods(db.foods, command)[0]
       const a = amount(command)
       if (a == 0 || food === undefined || food === null) {command = ""; return;}
-      ;(find_today(db.days) as Day).foods.push([food, a])
+      ;(find_today(db.days) as Day).foods.push([clone<Food>(food), a])
       db = {...db}; command = ""
     } else if (command.length > 0){
       special_commands[command.split(" ")[0].toLowerCase()][0]()
@@ -262,7 +262,7 @@
 </script>
 
 {#if page != "signup" && page != "error"}
-  <div class="header" bind:clientHeight={header_height}>
+  <div class="header">
     <input type="text" placeholder="run a command..." autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="off" bind:value={command} class="command" onkeyup={e => {if (e.key == "Enter") run_command()}}>
     {#if normal_command}
       {@const foods = narrow_foods(db.foods, command)}
@@ -278,7 +278,7 @@
             {#each foods as i, d}
             <li value={i.id}><button onclick={() => {
               let a = amount(command)
-              command = `${i.id}${a == 0 ? "" : " " + a}`
+              command = `${i.id} ${a == 0 ? "" : a}`
               document.querySelector<HTMLInputElement>(".command")?.focus()
               }}>{i.name}</button></li>
             {/each}
@@ -291,7 +291,7 @@
       <div class="food-preview">{@html special_commands[command.split(" ")[0].toLowerCase()][1]()}</div>
     {/if}
   </div>
-  <div class="header-spacer" style:height="{header_height+8}px"></div>
+  <div class="header-spacer" style:height="60px"></div>
 {/if}
 
 <div class="content">

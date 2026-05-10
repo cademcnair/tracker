@@ -31,13 +31,7 @@
     editing_food = true
     editing_food_index = index
   }
-  
-  function edit_food(id: string) {
-    
-  }
-  function delete_food(id: string) {
-    
-  }
+
   let search = $state(""), cal_prot = $state(false)
   function filter_foods(foods: Food[], s: string, m: boolean) {
     if (s.length == 0 && !cal_prot) return foods
@@ -56,22 +50,113 @@
   }
 
   let main = $state("none")
+
+  let creating_food = $state(false)
+  let new_food: Food = $state({
+    id: "",
+    name: "",
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    saturated_fat: 0,
+    sodium: 0
+  })
+  let transform_food = $state(false)
+  let transform_text = $state("")
+  let transform_text_multp = $derived(
+    transform_text.length == 0 ? 1 : 
+    !isNaN(Number(transform_text.replace("lbs", ""))) ? Number(transform_text.replace("lbs", "")) :
+    !isNaN(Number(transform_text.replace("g", ""))) ? Number(round(453.59 / Number(transform_text.replace("g", "")), 2)) :
+    !isNaN(Number(transform_text.replace("oz", ""))) ? Number(round(16 / Number(transform_text.replace("oz", "")), 2)) : 1
+  )
+  function edit_food(id: string) {
+    creating_food = true; editing_food = true;
+    new_food = clone<Food>(db.foods.find(f => f.id == id) as Food)
+    transform_food = false
+    transform_text = ""
+  }
+  function delete_food(id: string) {
+    if (!confirm(`Do you really want to delete "${db.foods.find(f => f.id == id)?.name}" from the database?`)) return; 
+    db.foods = db.foods.filter(f => f.id != id)
+    db = {...db}
+  }
+
+  let net_food_report = $state([])
+  $effect(() => {
+    let helper: any = {}
+    today.foods.forEach(f => {
+      if (helper[f[0].id] === undefined) helper[f[0].id] = [f[0].name, 0, 0, 0, 0, 0, 0, 0]
+      helper[f[0].id][1] += f[1]
+      helper[f[0].id][2] += f[0].calories * f[1]
+      helper[f[0].id][3] += f[0].protein * f[1]
+      helper[f[0].id][4] += f[0].carbs * f[1]
+      helper[f[0].id][5] += f[0].fat * f[1]
+      helper[f[0].id][6] += f[0].saturated_fat * f[1]
+      helper[f[0].id][7] += f[0].sodium * f[1]
+    })
+    console.log(helper)
+    net_food_report = Object.values(helper)
+  })
 </script>
 
-{#if editing_food}
+{#if editing_food || creating_food}
   <div class="container">
     <div class="editor">
-      <p><b>Editing food "{food_to_edit.name}"</b></p>
-      {#each db.settings.cares_about as macro}
-        {NICE_MACROS[macro][0]}: <input type="number" bind:value={food_to_edit[macro]} disabled={Number(food_to_edit.id) > -1}> * {editing_food_amount} = {round(food_to_edit[macro] * editing_food_amount, 2)} {NICE_MACROS[macro][2]}<br>
+      <p><b>{creating_food && !editing_food ? "Creating new food" : `Editing ${creating_food ? "database food" : "food from today"}`} named "{creating_food ? new_food.name : food_to_edit.name}"</b></p>
+      {#each (creating_food ? MACROS : db.settings.cares_about) as macro}
+        {#if editing_food && !creating_food}
+          {NICE_MACROS[macro][0]}: <input type="number" bind:value={food_to_edit[macro]} disabled={Number(food_to_edit.id) > -1}> * {editing_food_amount} = <span>{round(food_to_edit[macro] * editing_food_amount, 2)} {NICE_MACROS[macro][2]}</span>
+        {:else}
+          {NICE_MACROS[macro][0]}: <input type="number" bind:value={new_food[macro]}> {NICE_MACROS[macro][2]}
+          {#if transform_food}
+            * {transform_text_multp} = <span>{round(new_food[macro] * transform_text_multp, 2)} {NICE_MACROS[macro][2]}</span>
+          {/if}
+        {/if}
+        <br>
       {/each}
-      <b>Amount: </b> <input type="number" bind:value={editing_food_amount}><br><br>
-      <button onclick={() => {
-        today.foods[editing_food_index] = [food_to_edit, editing_food_amount]
+      {#if editing_food && !creating_food}
+        <b>Amount: </b> <input type="number" bind:value={editing_food_amount}>
+      {:else}
+        <b>Food name: </b> <input type="text" bind:value={new_food.name}>
+      {/if}
+      {#if creating_food && !editing_food}
+        <br><br><label style:cursor="pointer">
+          <input type="checkbox" bind:checked={transform_food}>Transform amounts based off of serving size?<br>
+          <i>Default unit: lbs; can specific units: g, oz</i>
+        </label>
+        {#if transform_food}
+          <br><input type="text" placeholder="Serving size" bind:value={transform_text}>
+        {/if}
+      {/if}
+      <br><br><button onclick={() => {
+        if (editing_food && !creating_food) {
+          today.foods[editing_food_index] = [food_to_edit, editing_food_amount]
+        } else if (creating_food && !editing_food) {
+          if (transform_food) {
+            new_food.calories = Number(round(new_food.calories * transform_text_multp, 2))
+            new_food.protein = Number(round(new_food.protein * transform_text_multp, 2))
+            new_food.carbs = Number(round(new_food.carbs * transform_text_multp, 2))
+            new_food.fat = Number(round(new_food.fat * transform_text_multp, 2))
+            new_food.saturated_fat = Number(round(new_food.saturated_fat * transform_text_multp, 2))
+            new_food.sodium = Number(round(new_food.sodium * transform_text_multp, 2))
+          }
+          db.foods.push(new_food)
+        } else {
+          let r = db.foods.filter(i => i.id == new_food.id)[0]
+          r.name = new_food.name
+          r.calories = new_food.calories
+          r.protein = new_food.protein
+          r.carbs = new_food.carbs
+          r.fat = new_food.fat
+          r.saturated_fat = new_food.saturated_fat
+          r.sodium = new_food.sodium
+        }
         editing_food = false
+        creating_food = false
         db = {...db}
-      }}>Save</button>
-      <button onclick={() => editing_food = false}>Cancel</button>
+      }} disabled={creating_food && new_food.name.length == 0}>Save</button>
+      <button onclick={() => {editing_food = false; creating_food = false}}>Cancel</button>
     </div>
   </div>
 {/if}
@@ -82,7 +167,7 @@
     {@const goal = db.settings[MACRO_SETTING[macro]]}
     <details class="macro" ontoggle = {e => {
       if (main == "none") {main = macro; setTimeout(() => main = "none", 100)}
-      document.querySelectorAll<HTMLDetailsElement>(".macro").forEach((d, index, arr) => d.open = e.currentTarget.open)
+      document.querySelectorAll<HTMLDetailsElement>(".macro").forEach(d => d.open = e.currentTarget.open)
       if (main == macro) {
         e.currentTarget.scrollIntoView({block: "center"})
       }
@@ -99,22 +184,39 @@
       </ul>
     </details>
   {/each}
+  <details class="macro">
+    <summary><b>Net food reports</b></summary>
+    <ul>
+      {#each net_food_report as food}
+        <li><span>{food[0]} * {round(food[1], 2)}</span> ({round(food[2], 2)}kcal, {round(food[3], 2)}g PROTEIN, {round(food[4], 2)}g CARBS, {round(food[5], 2)}g FAT, {round(food[6], 2)}g SATURATED FAT, {round(food[7], 2)}mg SODIUM)</li>
+      {/each}
+    </ul>
+  </details>
 </div>
 
 <div class="foods">
-  <p>
-    Remaining: {round((db.settings.goal_calories - totals.calories.total)/(db.settings.goal_protein - totals.protein.total), 5)}kcal/g
-  </p>
-  <p>
-    {#if totals.calories.total > 0}
-      Consumed: {round(totals.calories.total / totals.protein.total, 2)}kcal/g
-    {:else}
-      Consumed: (nothing :/)
-    {/if}
-  </p>
-  <p>
-    Goal: {round(db.settings.goal_calories / db.settings.goal_protein, 2)}kcal/g
-  </p>
+  {#key totals}
+    <p style:transform={"translateZ(0)"}>
+      Remaining: {round((db.settings.goal_calories - totals.calories.total)/(db.settings.goal_protein - totals.protein.total), 5)}kcal/g
+    </p>
+    <p>
+      {#if totals.calories.total > 0}
+        Consumed: {round(totals.calories.total / totals.protein.total, 2)}kcal/g
+      {:else}
+        Consumed: (nothing :/)
+      {/if}
+    </p>
+    <p>
+      Goal: {round(db.settings.goal_calories / db.settings.goal_protein, 2)}kcal/g
+    </p>
+  {/key}
+  <button onclick={() => {
+    creating_food = true
+    transform_food = false
+    transform_text = ""
+    let max_id = Math.max(...db.foods.map(i => Number(i.id)))
+    new_food = {id: String(max_id + 1), name: "", calories: 0, protein: 0, carbs: 0, fat: 0, saturated_fat: 0, sodium: 0}
+  }}>Add food (open window)</button><br><br>
   <input type="text" placeholder="Search" bind:value={search}>
   <label>
     <input type="checkbox" bind:checked={cal_prot}>kcal/g mode
