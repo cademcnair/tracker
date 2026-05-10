@@ -61,7 +61,7 @@
     {@const report = totals[macro]}
     {@const goal = db.settings[MACRO_SETTING[macro]]}
     <details class="macro">
-      <summary><b>{NICE_MACROS[macro][1]}: {report.total} - {goal} = {goal - report.total}{NICE_MACROS[macro][2]} left ({round((goal == 0 ? 1 : report.total/goal)*100, 1)}%)</b></summary>
+      <summary><b>{NICE_MACROS[macro][1]}: {goal} - {report.total} = {goal - report.total}{NICE_MACROS[macro][2]} left ({round((goal == 0 ? 1 : report.total/goal)*100, 1)}%)</b></summary>
       <ul>
         {#each report.foods as food}
           ({food[1]}{NICE_MACROS[macro][2]}) "{food[0]}"

@@ -6,7 +6,7 @@
   import Signup from "./routes/Signup.svelte";
   import Home from "./routes/Home.svelte";
   import Settings from "./routes/Settings.svelte";
-  import { find_today, today, capitalize } from "./lib/utils";
+  import { find_today, today, capitalize, NICE_MACROS, round } from "./lib/utils";
 
   let db: User = $state({
     user: "",
@@ -106,32 +106,92 @@
     // mounted = true
   })
 
-  function add_calories(args: string[]) {
-
+  function add_calories_message(): string {
+    if (amount(command) != 0) return `<h2>Adding <span>${amount(command)} calories</span>.</h2>`
+    return `<h2>Doing nothing.</h2>`
   }
-  const special_commands: { [k in string]: (args: string[]) => void } = {
-    cal: add_calories,
-    cals: add_calories,
-    calorie: add_calories,
-    calories: add_calories,
+  function add_calories() {
+    if (amount(command) === 0) return;
+    (find_today(db.days) as Day).foods.push([{
+      id: "-1",
+      name: "Simple add",
+      calories: amount(command),
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      saturated_fat: 0,
+      sodium: 0
+    }, 1])
+  }
+  const special_commands: { [k in string]: [() => void, () => string] } = {
+    cal: [add_calories, add_calories_message],
+    cals: [add_calories, add_calories_message],
+    calorie: [add_calories, add_calories_message],
+    calories: [add_calories, add_calories_message],
   }
   let command = $state("");
-  let normal_command = $derived(special_commands[command.split(" ")[0].toLowerCase()] !== undefined)
+  let normal_command = $derived(command.length > 0 && special_commands[command.split(" ")[0].toLowerCase()] === undefined)
+  let header_height = $state(0);
 
   function narrow_foods(foods: Food[], command: string) {
     if (!isNaN(Number(command))) return [foods[Number(command)]]
-    let key_words = command.split(" "); if (!isNaN(Number(key_words.at(-1)))) key_words.pop()
+    let key_words = command.split(" "); if (!isNaN(Number(key_words.at(-1)))) key_words.pop();
+    if (key_words.length == 1 && !isNaN(Number(key_words[0]))) return [foods[Number(key_words[0])]]
     return foods.filter(f => key_words.every(k => f.name.toLowerCase().includes(k.toLowerCase())))
   }
+
+  function amount(command: string) {
+    let key_words = command.split(" ");
+    if (!isNaN(Number(key_words[0]))) key_words.shift()
+    if (isNaN(Number(key_words.at(-1)))) return 0
+    return Number(key_words.at(-1))
+  }
+
+  function run_command() {
+    if (normal_command) {
+      const food = narrow_foods(db.foods, command)[0]
+      const a = amount(command)
+      ;(find_today(db.days) as Day).foods.push([food, a])
+      db = {...db}; command = ""
+    } else if (command.length > 0){
+      special_commands[command.split(" ")[0].toLowerCase()][0]()
+      db = {...db}; command = ""
+    }
+  }
+
 </script>
 
 {#if page != "signup" && page != "error"}
-  <div class="header">
-    <input type="text" placeholder="run a command..." autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="off" bind:value={command}>
-    {normal_command}
-    {JSON.stringify(narrow_foods(db.foods, command).map(f => f.name))}
+  <div class="header" bind:clientHeight={header_height}>
+    <input type="text" placeholder="run a command..." autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="off" bind:value={command} class="command" onkeyup={e => {if (e.key == "Enter") run_command()}}>
+    {#if normal_command}
+      {@const foods = narrow_foods(db.foods, command)}
+      {@const food = foods.length == 0 ? {"name":"Nothing","calories":0,"protein":0,"id":"-2","carbs":0,"fat":0,"saturated_fat":0,"sodium":0} : foods[0]}
+      <div class="food-preview">
+        <h2>Adding "{food.name}" * {amount(command)}</h2>
+        {#each db.settings.cares_about as macro, d}
+          <p>↪ {food[macro]}{NICE_MACROS[macro][2]} {NICE_MACROS[macro][0].toLowerCase()} * {amount(command)} = <span>{round(food[macro] * amount(command), 2)} {NICE_MACROS[macro][2]}</span></p>
+        {/each}
+        {#if foods.length > 1}
+          <h3>Did you mean:</h3>
+          <ol>
+            {#each foods as i, d}
+            <li value={i.id}><button onclick={() => {
+              let a = amount(command)
+              command = `${i.id}${a == 0 ? "" : " " + a}`
+              document.querySelector<HTMLInputElement>(".command")?.focus()
+              }}>{i.name}</button></li>
+            {/each}
+          </ol>
+        {/if}
+      </div>
+    {:else if command.length == 0}
+      <div></div>
+    {:else}
+      <div class="food-preview">{@html special_commands[command.split(" ")[0].toLowerCase()][1]()}</div>
+    {/if}
   </div>
-  <div class="header-spacer"></div>
+  <div class="header-spacer" style:height="{header_height+8}px"></div>
 {/if}
 
 <div class="content">
@@ -163,7 +223,35 @@
 {/if}
 
 
-<style scoped lang="scss">
+<style lang="scss">
+  :global(.food-preview) {
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    padding-left: 1rem;
+    padding-bottom: 1rem;
+    * {
+      margin: 0;
+    }
+    button {
+      cursor: pointer;
+      font-size: 1.25rem;
+    }
+    :global(span) {
+      background-color: yellow;
+      font-weight: 700;
+      font-style: italic;
+    }
+    p {
+      font-size: 1.5rem;
+    }
+    h3 {
+      margin-top: 0.5rem;
+      font-size: 1.5rem;
+      text-decoration: underline;
+    }
+    li {
+      font-size: 1.25rem;
+    }
+  }
   .spacer {
     height: 10rem;
     width: 1rem;
@@ -187,6 +275,7 @@
     position: fixed;
     top: 0;
     width: 100%;
+    background-color: white;
     input {
       width: calc(100% - 2rem);
       padding: 1rem;
@@ -209,10 +298,6 @@
     padding-top: 0.5rem;
     font-size: 1.5rem;
     background-color: white;
-  }
-  .header-spacer {
-    height: 4rem;
-    width: 1rem;
   }
   .content {
     padding: 20px;
