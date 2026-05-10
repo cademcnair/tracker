@@ -82,11 +82,11 @@
     db = {...db}
   }
 
-  let net_food_report = $state([])
+  let net_food_report: [string, number, number, number, number, number, number, number, string, number][] = $state([])
   $effect(() => {
     let helper: any = {}
     today.foods.forEach(f => {
-      if (helper[f[0].id] === undefined) helper[f[0].id] = [f[0].name, 0, 0, 0, 0, 0, 0, 0]
+      if (helper[f[0].id] === undefined) helper[f[0].id] = [f[0].name, 0, 0, 0, 0, 0, 0, 0, f[0].id, 0]
       helper[f[0].id][1] += f[1]
       helper[f[0].id][2] += f[0].calories * f[1]
       helper[f[0].id][3] += f[0].protein * f[1]
@@ -94,6 +94,7 @@
       helper[f[0].id][5] += f[0].fat * f[1]
       helper[f[0].id][6] += f[0].saturated_fat * f[1]
       helper[f[0].id][7] += f[0].sodium * f[1]
+      ++helper[f[0].id][9];
     })
     console.log(helper)
     net_food_report = Object.values(helper)
@@ -206,9 +207,66 @@
     <summary><b>Net food reports</b></summary>
     <ul>
       {#each net_food_report as food}
-        <li><span>{food[0]} * {round(food[1], 2)}</span> ({round(food[2], 2)}kcal, {round(food[3], 2)}g PROTEIN, {round(food[4], 2)}g CARBS, {round(food[5], 2)}g FAT, {round(food[6], 2)}g SATURATED FAT, {round(food[7], 2)}mg SODIUM)</li>
+        <li><span>{food[0]} * {round(food[1], 2)}</span> ({round(food[2], 2)}kcal, {round(food[3], 2)}g PROTEIN, {round(food[4], 2)}g CARBS, {round(food[5], 2)}g FAT, {round(food[6], 2)}g SATURATED FAT, {round(food[7], 2)}mg SODIUM) 
+          {#if food[8] != "-1" && food[9] != 1}
+            <button onclick={() => {
+              let id = food[8]
+              let indexes: number[] = []
+              today.foods.forEach((i, d) => {
+                if (i[0].id == id) {
+                  indexes.push(d)
+                }
+              })
+              indexes.reverse()
+              indexes.forEach(i => {
+                today.foods.splice(i, 1)
+              })
+              today.foods.push([{
+                name: food[0], id,
+                calories: round(food[2] / food[1], 2),
+                protein: round(food[3] / food[1], 2),
+                carbs: round(food[4] / food[1], 2),
+                fat: round(food[5] / food[1], 2),
+                saturated_fat: round(food[6] / food[1], 2),
+                sodium: round(food[7] / food[1], 2)
+              }, round(food[1], 2)])
+              db = {...db}
+            }}>Compress</button>
+          {/if}
+        </li>
       {/each}
     </ul>
+    <button onclick={() => {
+      let totals = {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        saturated_fat: 0,
+        sodium: 0
+      }
+      let simple_add_indexes: number[] = []
+      today.foods.forEach((i, d) => {
+        if (i[0].id == "-1") {
+          totals.calories += i[0].calories * i[1]
+          totals.protein += i[0].protein * i[1]
+          totals.carbs += i[0].carbs * i[1]
+          totals.fat += i[0].fat * i[1]
+          totals.saturated_fat += i[0].saturated_fat * i[1]
+          totals.sodium += i[0].sodium * i[1]
+          simple_add_indexes.push(d)
+        }
+      })
+      simple_add_indexes.reverse()
+      simple_add_indexes.forEach(i => {
+        today.foods.splice(i, 1)
+      })
+      today.foods.push([{
+        name: "Simple add (compressed)",
+        id: "-1", ...totals
+      }, 1])
+      db = {...db}
+    }}>Compress today's "Simple add"s</button>
   </details>
 </div>
 
@@ -293,6 +351,8 @@
     border: 2.5px solid black;
     padding: 1rem;
     display: block;
+    overflow-x: auto;
+    text-wrap: nowrap;
   }
   .foods {
     margin-top: 2rem;
