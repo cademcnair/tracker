@@ -26,7 +26,7 @@ export function find_totals(foods: [Food, number][]): FindTotalsReport {
     let macro = MACROS[i]
     report[macro] = {
       total: foods.map(i => i[0][macro] * i[1]).reduce((a, b) => a+b, 0),
-      foods: foods.map((i, d) => [i[0].name, i[0][macro] * i[1], d])
+      foods: foods.map((i, d) => [i[0].name, round(i[0][macro] * i[1], 2), d])
     }
   }
   return report

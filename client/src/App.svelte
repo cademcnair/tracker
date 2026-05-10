@@ -114,7 +114,7 @@
     if (amount(command) === 0) return;
     (find_today(db.days) as Day).foods.push([{
       id: "-1",
-      name: "Simple add",
+      name: "Simple add " + (find_today(db.days) as Day).foods.length,
       calories: amount(command),
       protein: 0,
       carbs: 0,
@@ -123,11 +123,109 @@
       sodium: 0
     }, 1])
   }
+  function add_protein_message(): string {
+    if (amount(command) != 0) return `<h2>Adding <span>${amount(command)} grams of protein</span>.</h2>`
+    return `<h2>Doing nothing.</h2>`
+  }
+  function add_protein() {
+    if (amount(command) === 0) return;
+    (find_today(db.days) as Day).foods.push([{
+      id: "-1",
+      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      calories: 0,
+      protein: amount(command),
+      carbs: 0,
+      fat: 0,
+      saturated_fat: 0,
+      sodium: 0
+    }, 1])
+  }
+  function add_carbs_message(): string {
+    if (amount(command) != 0) return `<h2>Adding <span>${amount(command)} grams of carbs</span>.</h2>`
+    return `<h2>Doing nothing.</h2>`
+  }
+  function add_carbs() {
+    if (amount(command) === 0) return;
+    (find_today(db.days) as Day).foods.push([{
+      id: "-1",
+      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      calories: 0,
+      protein: 0,
+      carbs: amount(command),
+      fat: 0,
+      saturated_fat: 0,
+      sodium: 0
+    }, 1])
+  }
+  function add_fat_message(): string {
+    if (amount(command) != 0) return `<h2>Adding <span>${amount(command)} grams of fat</span>.</h2>`
+    return `<h2>Doing nothing.</h2>`
+  }
+  function add_fat() {
+    if (amount(command) === 0) return;
+    (find_today(db.days) as Day).foods.push([{
+      id: "-1",
+      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: amount(command),
+      saturated_fat: 0,
+      sodium: 0
+    }, 1])
+  }
+  function add_saturated_fat_message(): string {
+    if (amount(command) != 0) return `<h2>Adding <span>${amount(command)} grams of saturated fat</span>.</h2>`
+    return `<h2>Doing nothing.</h2>`
+  }
+  function add_saturated_fat() {
+    if (amount(command) === 0) return;
+    (find_today(db.days) as Day).foods.push([{
+      id: "-1",
+      name: "Simple add " + (find_today(db.days) as Day).foods.length,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      saturated_fat: amount(command),
+      sodium: 0
+    }, 1])
+  }
+  function add_sodium_message(): string {
+    if (amount(command) != 0) return `<h2>Adding <span>${amount(command)} milligrams of sodium</span>.</h2>`
+    return `<h2>Doing nothing.</h2>`
+  }
+  function add_sodium() {
+    if (amount(command) === 0) return;
+    (find_today(db.days) as Day).foods.push([{
+      id: "-1",
+      name: "Simple add",
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      saturated_fat: 0,
+      sodium: amount(command)
+    }, 1])
+  }
   const special_commands: { [k in string]: [() => void, () => string] } = {
     cal: [add_calories, add_calories_message],
     cals: [add_calories, add_calories_message],
     calorie: [add_calories, add_calories_message],
     calories: [add_calories, add_calories_message],
+    protein: [add_protein, add_protein_message],
+    pro: [add_protein, add_protein_message],
+    prot: [add_protein, add_protein_message],
+    carbs: [add_carbs, add_carbs_message],
+    carb: [add_carbs, add_carbs_message],
+    fat: [add_fat, add_fat_message],
+    fats: [add_fat, add_fat_message],
+    saturated: [add_saturated_fat, add_saturated_fat_message],
+    sat: [add_saturated_fat, add_saturated_fat_message],
+    sf: [add_saturated_fat, add_saturated_fat_message],
+    sodium: [add_sodium, add_sodium_message],
+    sod: [add_sodium, add_sodium_message],
+    mg: [add_sodium, add_sodium_message]
   }
   let command = $state("");
   let normal_command = $derived(command.length > 0 && special_commands[command.split(" ")[0].toLowerCase()] === undefined)
@@ -271,6 +369,8 @@
     padding: 0;
   }
   .header {
+    max-height: calc(100% - 10rem);
+    overflow-y: auto;
     border-bottom: 2.5px solid black;
     position: fixed;
     top: 0;

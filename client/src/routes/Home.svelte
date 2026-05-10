@@ -9,6 +9,7 @@
     const food = today.foods[index]
     if (!confirm(`Do you really want to delete "${food[0].name}" from today?`)) return;
     today.foods.splice(index, 1)
+    db = {...db}
   }
   
   let editing_food = $state(false)
@@ -43,13 +44,14 @@
   <div class="container">
     <div class="editor">
       <p><b>Editing food "{food_to_edit.name}"</b></p>
-      {#each MACROS as macro}
-        {NICE_MACROS[macro][0]}: <input type="number" bind:value={food_to_edit[macro]} disabled={Number(food_to_edit.id) > -1}> * {editing_food_amount} = {food_to_edit[macro] * editing_food_amount} {NICE_MACROS[macro][2]}
+      {#each db.settings.cares_about as macro}
+        {NICE_MACROS[macro][0]}: <input type="number" bind:value={food_to_edit[macro]} disabled={Number(food_to_edit.id) > -1}> * {editing_food_amount} = {round(food_to_edit[macro] * editing_food_amount, 2)} {NICE_MACROS[macro][2]}<br>
       {/each}
       <b>Amount: </b> <input type="number" bind:value={editing_food_amount}><br><br>
       <button onclick={() => {
         today.foods[editing_food_index] = [food_to_edit, editing_food_amount]
         editing_food = false
+        db = {...db}
       }}>Save</button>
       <button onclick={() => editing_food = false}>Cancel</button>
     </div>
@@ -60,13 +62,15 @@
   {#each db.settings.cares_about as macro}
     {@const report = totals[macro]}
     {@const goal = db.settings[MACRO_SETTING[macro]]}
-    <details class="macro">
-      <summary><b>{NICE_MACROS[macro][1]}: {goal} - {report.total} = {goal - report.total}{NICE_MACROS[macro][2]} left ({round((goal == 0 ? 1 : report.total/goal)*100, 1)}%)</b></summary>
+    <details class="macro" ontoggle = {e => document.querySelectorAll<HTMLDetailsElement>(".macro").forEach(d => d.open = e.currentTarget.open)}>
+      <summary><b>{NICE_MACROS[macro][1]}: {goal} - {round(report.total, 2)} = {round(goal - report.total, 2)}{NICE_MACROS[macro][2]} left ({round((goal == 0 ? 1 : report.total/goal)*100, 1)}%)</b></summary>
       <ul>
         {#each report.foods as food}
-          ({food[1]}{NICE_MACROS[macro][2]}) "{food[0]}"
-          <button onclick={() => edit_today(food[2])}>edit</button>
-          <button onclick={() => delete_today(food[2])}>delete</button>
+          <li>
+            ({food[1]}{NICE_MACROS[macro][2]}) "{food[0]}" * {today.foods[food[2]][1]}
+            <button onclick={() => edit_today(food[2])}>edit</button>
+            <button onclick={() => delete_today(food[2])}>delete</button>
+          </li>
         {/each}
       </ul>
     </details>
@@ -79,7 +83,7 @@
   </p>
   <p>
     {#if totals.calories.total > 0}
-      Consumed: {round(totals.calories.total / totals.protein.total, 2)}kcal/gap
+      Consumed: {round(totals.calories.total / totals.protein.total, 2)}kcal/g
     {:else}
       Consumed: (nothing :/)
     {/if}
@@ -100,11 +104,39 @@
 </div>
 
 <style scoped lang="scss">
+  .container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .editor {
+      background-color: white;
+      padding: 1rem;
+    }
+  }
+  button {
+    cursor: pointer;
+  }
   .macros {
     display: grid;
     gap: 1rem;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: masonry;
+  }
+  @media (max-width: 600px) {
+    .macros {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (min-width: 1500px) {
+    .macros {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
   }
   .macro {
     border: 2.5px solid black;
@@ -115,6 +147,8 @@
     margin-top: 2rem;
     border: 2.5px solid black;
     padding: 1rem;
+    overflow-x: auto;
+    text-wrap: nowrap;
     p:first-child {
       margin-top: 0;
     }
