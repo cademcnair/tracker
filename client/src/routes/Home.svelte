@@ -207,7 +207,7 @@
     <summary><b>Net food reports</b></summary>
     <ul>
       {#each net_food_report as food}
-        <li><span>{food[0]} * {round(food[1], 2)}</span> ({round(food[2], 2)}kcal, {round(food[3], 2)}g PROTEIN, {round(food[4], 2)}g CARBS, {round(food[5], 2)}g FAT, {round(food[6], 2)}g SATURATED FAT, {round(food[7], 2)}mg SODIUM) 
+        <li><span>{food[8] == "-1" ? "Simple add" : food[0]} * {round(food[1], 2)}</span> ({round(food[2], 2)}kcal, {round(food[3], 2)}g PROTEIN, {round(food[4], 2)}g CARBS, {round(food[5], 2)}g FAT, {round(food[6], 2)}g SATURATED FAT, {round(food[7], 2)}mg SODIUM) 
           {#if food[8] != "-1" && food[9] != 1}
             <button onclick={() => {
               let id = food[8]
@@ -221,7 +221,7 @@
               indexes.forEach(i => {
                 today.foods.splice(i, 1)
               })
-              today.foods.push([{
+              if (round(food[1], 2) != 0) today.foods.push([{
                 name: food[0], id,
                 calories: round(food[2] / food[1], 2),
                 protein: round(food[3] / food[1], 2),

@@ -16,19 +16,19 @@ export interface Food {
 export interface Workout {
   name: string;
   exercises: string[];
+  notes: string;
 }
 
 export interface Exercise {
   id: string;
   name: string;
-  notes?: string;
+  notes: string;
   sets: ExerciseSet[];
 }
 
 export interface ExerciseSet {
   reps: number;
   weight: number;
-  repeats: number;
 }
 
 export type MacroSettingName = "goal_calories" | "goal_protein" | "goal_carbs" | "goal_fat" | "max_saturated_fat" | "max_sodium"
@@ -61,7 +61,10 @@ export interface User {
   store_method: StoreMethod;
   days: Day[];
   page: string;
-  foods: Food[]
+  foods: Food[];
+  exercises: Exercise[];
+  workouts: Workout[];
+  weights: Weight[];
 }
 
 export type Props = {
@@ -69,5 +72,4 @@ export type Props = {
   SERVER: string,
   page: string,
   error: string,
-  // save: () => void
 }

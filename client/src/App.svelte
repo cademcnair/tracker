@@ -2,7 +2,7 @@
   const SERVER = "http://localhost:3000/"
 
   import { onMount, untrack } from "svelte";
-  import type { User, Day, Food } from "./lib/types";
+  import type { User, Day, Food, Weight, Workout, Exercise } from "./lib/types";
   import Signup from "./routes/Signup.svelte";
   import Home from "./routes/Home.svelte";
   import Settings from "./routes/Settings.svelte";
@@ -23,7 +23,10 @@
     store_method: "client",
     page: "signup",
     days: [] as Day[],
-    foods: [] as Food[]
+    foods: [] as Food[],
+    exercises: [] as Exercise[],
+    workouts: [] as Workout[],
+    weights: [] as Weight[]
   });
   let page: string = $state("signup");
   let error: any = $state(null);
@@ -226,11 +229,77 @@
     sf: [add_saturated_fat, add_saturated_fat_message],
     sodium: [add_sodium, add_sodium_message],
     sod: [add_sodium, add_sodium_message],
-    mg: [add_sodium, add_sodium_message]
+    mg: [add_sodium, add_sodium_message],
+    save: [save, save_message],
+    sv: [save, save_message],
+    view: [view_save, view_save_message],
+    vw: [view_save, view_save_message],
+    load: [load_save, load_save_message],
+    ld: [load_save, load_save_message],
+    delete: [delete_save, delete_save_message],
+    del: [delete_save, delete_save_message],
+    rm: [delete_save, delete_save_message],
+    list: [() => {}, list_saves],
+    ls: [() => {}, list_saves],
   }
+  function save() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    localStorage.setItem("save-" + save_name, JSON.stringify(db))
+  }
+  function save_message() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    if (localStorage.getItem("save-" + save_name) !== null) {
+      return `OVERWRITE save <span>"${save_name}"</span> with current state`
+    } else {
+      return `CREATE locally-stored save <span>"${save_name}"</span> with current state`
+    }
+  }
+  function view_save() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    if (localStorage.getItem("save-" + save_name) !== null) {
+      db = JSON.parse(localStorage.getItem("save-" + save_name) as string)
+    }
+  }
+  function view_save_message() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    if (localStorage.getItem("save-" + save_name) !== null) {
+      return `View save <span>"${save_name}"</span>`
+    } else {
+      return `Do nothing (save "${save_name}" not found)`
+    }
+  }
+  function load_save() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    view_save(); localStorage.removeItem("save-" + save_name)
+  }
+  function load_save_message() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    if (localStorage.getItem("save-" + save_name) !== null) {
+      return `View and DELETE save <span>"${save_name}"</span>`
+    } else {
+      return `Do nothing (save "${save_name}" not found)`
+    }
+  }
+  function delete_save() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    localStorage.removeItem("save-" + save_name)
+  }
+  function delete_save_message() {
+    let save_name = command.split(" ").slice(1).join(" ")
+    if (localStorage.getItem("save-" + save_name) !== null) {
+      return `DELETE save <span>"${save_name}"</span>`
+    } else {
+      return `Do nothing (save "${save_name}" not found)`
+    }
+  }
+  function list_saves() {
+    let query = command.split(" ").slice(1).join(" ")
+    let list = Object.keys(localStorage).filter(k => k.startsWith("save-")).map(k => k.slice(5)).filter(k => k.toLowerCase().includes(query.toLowerCase()))
+    return "<ul><li>" + (list.length == 0 ? ["<span>No saves found</span>"] : list.map(k => `${k}`)).join("</li><li>") + "</li></ul>"
+  }
+
   let command = $state("");
   let normal_command = $derived(command.length > 0 && special_commands[command.split(" ")[0].toLowerCase()] === undefined)
-  let header_height = $state(0);
 
   function narrow_foods(foods: Food[], command: string) {
     if (!isNaN(Number(command))) return [foods[Number(command)]]
@@ -378,6 +447,7 @@
     top: 0;
     width: 100%;
     background-color: white;
+    z-index: 10;
     input {
       width: calc(100% - 2rem);
       padding: 1rem;
