@@ -13,9 +13,10 @@ export interface Food {
   sodium: number;
 }
 
-export interface Workout {
+// completed = true; template = false
+export interface Workout<T extends boolean> {
   name: string;
-  exercises: string[];
+  exercises: (T extends true ? [string, number, ExerciseSet[]] : [string, number])[];
   notes: string;
 }
 
@@ -24,6 +25,8 @@ export interface Exercise {
   name: string;
   notes: string;
   sets: ExerciseSet[];
+  rest: number;
+  leftright: boolean;
 }
 
 export interface ExerciseSet {
@@ -49,7 +52,7 @@ export interface Weight {
 
 export interface Day {
   weights: Weight[];
-  workouts: Workout[];
+  workouts: Workout<true>[];
   foods: [Food, number][];
   date: number;
 }
@@ -63,7 +66,7 @@ export interface User {
   page: string;
   foods: Food[];
   exercises: Exercise[];
-  workouts: Workout[];
+  workouts: Workout<false>[];
   weights: Weight[];
 }
 

@@ -1,11 +1,8 @@
 <script lang="ts">
   const SERVER = "http://localhost:3000/"
 
-  import { onMount, untrack } from "svelte";
+  import { onMount } from "svelte";
   import type { User, Day, Food, Weight, Workout, Exercise } from "./lib/types";
-  import Signup from "./routes/Signup.svelte";
-  import Home from "./routes/Home.svelte";
-  import Settings from "./routes/Settings.svelte";
   import { find_today, today, capitalize, NICE_MACROS, round, clone } from "./lib/utils";
 
   let db: User = $state({
@@ -25,7 +22,7 @@
     days: [] as Day[],
     foods: [] as Food[],
     exercises: [] as Exercise[],
-    workouts: [] as Workout[],
+    workouts: [] as Workout<false>[],
     weights: [] as Weight[]
   });
   let page: string = $state("signup");
@@ -328,6 +325,11 @@
     }
   }
 
+  import Signup from "./routes/Signup.svelte";
+  import Home from "./routes/Home.svelte";
+  import Settings from "./routes/Settings.svelte";
+  import Exercises from "./routes/Exercises.svelte";
+
 </script>
 
 {#if page != "signup" && page != "error"}
@@ -370,6 +372,8 @@
     <Home bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {:else if page == "settings"}
     <Settings bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
+  {:else if page == "exercises"}
+    <Exercises bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {/if}
 </div>
 
@@ -382,7 +386,7 @@
     <div class="footer-nav">
       Go to:
       <select bind:value={page}>
-        {#each ["home", "settings"] as place}
+        {#each ["home", "settings", "exercises"] as place}
           <option value={place} selected={page == place}>{capitalize(place)}</option>
         {/each}
       </select>

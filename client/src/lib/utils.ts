@@ -49,3 +49,7 @@ export const MACRO_SETTING: { [k in Macro]: MacroSettingName} = {
   saturated_fat: "max_saturated_fat",
   sodium: "max_sodium"
 }
+
+export const READONLY = 0;
+export const EDIT_PROACTIVE = 1;
+export const EDIT_PASSIVE = 2;
