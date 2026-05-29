@@ -18,6 +18,7 @@ export interface Workout<T extends boolean> {
   name: string;
   exercises: (T extends true ? [string, number, ExerciseSet[]] : [string, number])[];
   notes: string;
+  color: string;
 }
 
 export interface Exercise {
@@ -27,6 +28,9 @@ export interface Exercise {
   sets: ExerciseSet[];
   rest: number;
   leftright: boolean;
+  repsonly: boolean;
+  normalreps: number;
+  sincelastimprovement: number;
 }
 
 export interface ExerciseSet {

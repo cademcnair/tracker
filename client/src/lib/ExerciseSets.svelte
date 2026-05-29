@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ExerciseSet } from "./types";
-  import { READONLY, EDIT_PASSIVE, EDIT_PROACTIVE, clone } from "./utils";
+  import { READONLY, EDIT_PASSIVE, EDIT_PROACTIVE, clone, EDIT_COMPLEX_PASSIVE, EDIT_COMPLEX_PROACTIVE } from "./utils";
   import EDIT from "./edit.png";
   import OPEN from "./open.png";
   import CLOSE from "./close.png";
@@ -8,10 +8,10 @@
   import DOWN from "./down.png";
   
 
-  let { exercise_sets, leftright, view_mode, save_changes }: {
+  let { exercise_sets, leftright, repsonly, view_mode, save_changes }: {
     exercise_sets: ExerciseSet[],
-    leftright: boolean;
-    view_mode: typeof READONLY | typeof EDIT_PROACTIVE | typeof EDIT_PASSIVE,
+    leftright: boolean, repsonly: boolean,
+    view_mode: typeof READONLY | typeof EDIT_PROACTIVE | typeof EDIT_PASSIVE | typeof EDIT_COMPLEX_PROACTIVE | typeof EDIT_COMPLEX_PASSIVE,
     save_changes?: (set: ExerciseSet[]) => Promise<void> | void
   } = $props();
 
@@ -30,7 +30,6 @@
   let editing = $state(false), editing_different_weights = $state(weight_varies), editing_view_basic = $state(true)
   let total_reps = $derived(using_exercise_sets.reduce((a, b) => a + b.reps, 0))
   function plus() {
-    console.log(processed_set)
     let last = processed_set[processed_set.length - 1][0]; ++last.reps
     using_exercise_sets = using_exercise_sets
   }
@@ -45,7 +44,9 @@
 
   $effect(() => {
     if (weight_varies == true) editing_different_weights = true
-    if (view_mode == EDIT_PROACTIVE) {
+  })
+  $effect(() => {
+    if (view_mode == EDIT_PROACTIVE || view_mode == EDIT_COMPLEX_PROACTIVE) {
       if (save_changes) save_changes(using_exercise_sets)
     }
   })
@@ -53,45 +54,51 @@
 
 <div class:anchor={true} class:editing={editing} class:editing-view-basic={editing_view_basic}>
   {#if editing_view_basic}
-    {#if !weight_varies}
-      {@const weight = processed_set[0][0].weight}
-      {weight}{ weight != 1 ? "lbs" : "lb"}, 
-    {/if}
-    {#each processed_set as set, d}
-      {set[0].reps}/{set[1]}{leftright ? "/LR" : ""}
-      {#if weight_varies}
-        ({set[0].weight}{ set[0].weight != 1 ? "lbs" : "lb"})
-      {/if}
-      {#if d != processed_set.length - 1}
-        ->&nbsp;
-      {/if}
-    {/each}
     {#if view_mode != READONLY}
       {#if using_exercise_sets.length != 0 && total_reps > 1}
         <button onclick={plus} class:tiny={true}>+</button>
         <button onclick={minus} class:tiny={true}>-</button>
+      {:else}
+        <button onclick={() => {
+          using_exercise_sets[0].reps = 2
+        }} class:tiny={true}>+</button>
       {/if}
-      <button onclick={()=>{
-        editing = !editing
-        editing_view_basic = true
-      }} class:tiny={true}><img src={EDIT} alt="edit"></button>
-      {#if view_mode == EDIT_PASSIVE}
+      {#if view_mode == EDIT_COMPLEX_PASSIVE || view_mode == EDIT_COMPLEX_PROACTIVE}
+        <button onclick={()=>{
+          editing = !editing
+          editing_view_basic = true
+        }} class:tiny={true}><img src={EDIT} alt="edit"></button>
+      {/if}
+      {#if view_mode == EDIT_PASSIVE || view_mode == EDIT_COMPLEX_PASSIVE}
         <button onclick={() => {
           if (save_changes) save_changes(using_exercise_sets)
         }} style:font-size="1.25rem">save</button>
       {/if}
     {/if}
+    <svelte:element this={view_mode == READONLY ? "a" : "a"} style:font-size={view_mode == READONLY ? "" : "1.375rem"}>
+      {#if !weight_varies && !repsonly}
+        {@const weight = processed_set[0][0].weight}
+        {weight}{ weight != 1 ? "lbs" : "lb"}, 
+      {/if}
+      {#each processed_set as set, d}
+        {set[0].reps}/{set[1]}{leftright ? "/LR" : ""}
+        {#if weight_varies && !repsonly}
+          ({set[0].weight}{set[0].weight != 1 ? "lbs" : "lb"})
+        {/if}
+        {#if d != processed_set.length - 1}
+          ->&nbsp;
+        {/if}
+      {/each}
+    </svelte:element>
   {/if}
   {#if editing}
     <div class="editor" class:editing-view-basic={editing_view_basic}>
       <button class:tiny={true} onclick={() => editing_view_basic = !editing_view_basic}><img src={editing_view_basic ? OPEN : CLOSE} alt="open"></button><br><br>
-      {#if !weight_varies || editing_different_weights}
-        <label style:cursor="pointer"><input type="checkbox" bind:checked={editing_different_weights} onchange={(e) => {
-          if (!e.currentTarget.checked) {
-            using_exercise_sets = using_exercise_sets.map(i => ({reps: i.reps, weight: using_exercise_sets[0].weight}))
-          }
-        }}> Sets use a different weight</label>
-      {/if}
+      <label style:cursor="pointer"><input type="checkbox" bind:checked={editing_different_weights} onchange={(e) => {
+        if (!e.currentTarget.checked) {
+          using_exercise_sets = using_exercise_sets.map(i => ({reps: i.reps, weight: using_exercise_sets[0].weight}))
+        }
+      }}> Sets use a different weight</label>
       {#if !editing_different_weights}
         <br><br>exercise weight: <input type="number" value={using_exercise_sets[0].weight} onchange={(e) => using_exercise_sets.forEach(i => i.weight = Number(e.currentTarget.value))}>
       {/if}

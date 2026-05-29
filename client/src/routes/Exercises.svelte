@@ -12,4 +12,4 @@
   { reps: 1, weight: 150 },
   { reps: 1, weight: 150 },
   { reps: 1, weight: 150 }
-]} view_mode={EDIT_PASSIVE} leftright={true}/> h47u3ifwhu43th uig3riujghu23ri fjkg23rhufi jg324huirkjg3rhqui kjg3qrhfu jkg3qrhwufi 
+]} view_mode={EDIT_PASSIVE} repsonly={false} leftright={true}/> h47u3ifwhu43th uig3riujghu23ri fjkg23rhufi jg324huirkjg3rhqui kjg3qrhfu jkg3qrhwufi 
