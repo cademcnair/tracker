@@ -78,4 +78,5 @@
   <button onclick={()=>create("server", "login")} disabled={pass.length == 0 || user.length == 0 || pass != verify_pass}>Login</button>
 {:else if db.user.length != 0}
   <p>Loading...</p>
+  <button onclick={() => page = "home"}>Go home</button>
 {/if}

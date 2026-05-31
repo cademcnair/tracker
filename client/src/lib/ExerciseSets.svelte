@@ -16,6 +16,8 @@
   } = $props();
 
   // svelte-ignore state_referenced_locally
+  let first_exercise_sets = $state.snapshot(exercise_sets);
+  // svelte-ignore state_referenced_locally
   let using_exercise_sets = $state($state.snapshot(exercise_sets))
 
   let processed_set = $derived((using_exercise_sets as any).reduce((a: [ExerciseSet, number][], b: ExerciseSet) => {
@@ -47,7 +49,10 @@
   })
   $effect(() => {
     if (view_mode == EDIT_PROACTIVE || view_mode == EDIT_COMPLEX_PROACTIVE) {
-      if (save_changes) save_changes(using_exercise_sets)
+      if (save_changes && JSON.stringify(first_exercise_sets) != JSON.stringify(using_exercise_sets)) {
+        first_exercise_sets = clone(using_exercise_sets)
+        save_changes(using_exercise_sets)
+      }
     }
   })
 </script>
