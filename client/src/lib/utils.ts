@@ -55,3 +55,4 @@ export const EDIT_PROACTIVE = 1;
 export const EDIT_PASSIVE = 2;
 export const EDIT_COMPLEX_PROACTIVE = 3;
 export const EDIT_COMPLEX_PASSIVE = 4;
+export const str = JSON.stringify;
