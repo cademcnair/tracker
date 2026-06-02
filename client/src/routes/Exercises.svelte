@@ -1,7 +1,7 @@
 <script lang="ts">
   import Exercise from "../lib/Exercise.svelte";
   import type { Props, Exercise as ExerciseType } from "../lib/types"
-  import { clone, EDIT_COMPLEX_PROACTIVE, str } from "../lib/utils";
+  import { clone, EDIT_COMPLEX_PROACTIVE, EDIT_PROACTIVE, str } from "../lib/utils";
     import WorkoutTemplate from "../lib/WorkoutTemplate.svelte";
   let { db = $bindable(), SERVER, page = $bindable(), error = $bindable() }: Props = $props();
   
@@ -67,7 +67,7 @@
   notes: "",
   color: "#f00",
   exercises: using_exercises.map(i => i.id),
-}} view_mode={EDIT_COMPLEX_PROACTIVE} all_exercises={using_exercises}/>
+}} view_mode={EDIT_PROACTIVE} all_exercises={using_exercises}/>
 
 <h2>Exercises</h2>
 <div class="exercises">
@@ -103,7 +103,7 @@
     grid-template-columns: repeat(auto-fill, 354px);
   }
   .saving {
-    position: absolute;
+    position: fixed;
     top: 1rem;
     right: 1rem;
     border: 5px solid black;

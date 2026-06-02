@@ -52,9 +52,9 @@
             exercise={current_exercise} 
             view_mode={
               view_mode == READONLY ? READONLY : 
-              ((view_mode == EDIT_PASSIVE || view_mode == EDIT_PROACTIVE) ? 
+              ((view_mode == EDIT_PROACTIVE || view_mode == EDIT_PASSIVE) ? 
               EDIT_PROACTIVE : EDIT_COMPLEX_PROACTIVE)
-            } 
+            }
             save_changes={(c) => {
               if (view_mode == EDIT_PROACTIVE || view_mode == EDIT_COMPLEX_PROACTIVE) {
                 if(save_changes_exercise) {
@@ -70,6 +70,9 @@
               if (confirm(`Are you sure you want to delete the exercise "${current_exercise.name}" from this workout?`)) {
                 using_workout.exercises.splice(d, 1);
                 using_workout = {...using_workout}
+                if (using_workout.exercises.length == 0) {
+                  exercise_mode = VIEW_ONLY
+                }
               }
             }}>delete</button>
           {:else if exercise_mode == MOVING}
@@ -112,8 +115,10 @@
   {/if}
   {#if view_mode == EDIT_COMPLEX_PASSIVE || view_mode == EDIT_COMPLEX_PROACTIVE}
     <br><button class="top" onclick={() => exercise_mode = ADDING}>+</button><br>
-    <button class="side" onclick={() => exercise_mode = DELETING}>-</button>
-    <button class="side" onclick={() => exercise_mode = MOVING}>=</button>
+    {#if using_workout.exercises.length > 0}
+      <button class="side" onclick={() => exercise_mode = DELETING}>-</button>
+      <button class="side" onclick={() => exercise_mode = MOVING}>=</button>
+    {/if}
     {#if exercise_mode != VIEW_ONLY}
       <button class="top" onclick={() => exercise_mode = VIEW_ONLY}>exit</button>
     {/if}

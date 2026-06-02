@@ -57,7 +57,7 @@
       </div>
     </details>
   {/if}
-  {#if view_mode == EDIT_COMPLEX_PASSIVE || view_mode == EDIT_PROACTIVE}
+  {#if view_mode == EDIT_COMPLEX_PASSIVE || view_mode == EDIT_PASSIVE}
     <div class="full">
       <button class="save" onclick={() => {if(save_changes)save_changes(using_exercise)}}>save changes</button>
     </div>
