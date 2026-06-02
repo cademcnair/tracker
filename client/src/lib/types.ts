@@ -16,7 +16,7 @@ export interface Food {
 // completed = true; template = false
 export interface Workout<T extends boolean> {
   name: string;
-  exercises: (T extends true ? [string, number, ExerciseSet[]] : [string, number])[];
+  exercises: (T extends true ? [string, ExerciseSet[]] : string)[];
   notes: string;
   color: string;
 }

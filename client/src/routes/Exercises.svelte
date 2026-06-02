@@ -2,9 +2,11 @@
   import Exercise from "../lib/Exercise.svelte";
   import type { Props, Exercise as ExerciseType } from "../lib/types"
   import { clone, EDIT_COMPLEX_PROACTIVE, str } from "../lib/utils";
+    import WorkoutTemplate from "../lib/WorkoutTemplate.svelte";
   let { db = $bindable(), SERVER, page = $bindable(), error = $bindable() }: Props = $props();
   
   let using_exercises = $state($state.snapshot(db.exercises))
+  let using_workouts = $state($state.snapshot(db.workouts))
   // svelte-ignore state_referenced_locally
   let q: ExerciseType[][] = [clone($state.snapshot(using_exercises))]
   let pending_save = $state(false)
@@ -59,16 +61,34 @@
   <div class="saving"><span>Saving...</span><br><button onclick={() => save(using_exercises)}>save now</button></div>
 {/if}
 
+<h2>Workouts</h2>
+<WorkoutTemplate workout={{
+  name: "New Workout",
+  notes: "",
+  color: "#f00",
+  exercises: using_exercises.map(i => i.id),
+}} view_mode={EDIT_COMPLEX_PROACTIVE} all_exercises={using_exercises}/>
+
 <h2>Exercises</h2>
 <div class="exercises">
+  {#if using_exercises.length == 0}
+    <p style:padding-left="2rem"><i>no exercises found ._.</i></p>
+  {/if}
   {#each using_exercises as exercise, d (exercise.id)}
     <div class="exercise">
       <Exercise exercise={exercise} view_mode={EDIT_COMPLEX_PROACTIVE} save_changes={(c) => {using_exercises[d] = c}}/>
       <button onclick={() => {
-        if (confirm(`Are you sure you want to delete the exercise "${exercise.name}" / ID = ${exercise.id}?`)) using_exercises.splice(d, 1)
+        if (confirm(`Are you sure you want to delete the exercise "${exercise.name}" / ID = ${exercise.id}?`)) {
+          using_exercises.splice(d, 1)
+          db.workouts = db.workouts.map(i => {
+            i.exercises = i.exercises.filter(ii => ii != exercise.id)
+            return i
+          })
+          save(using_exercises)
+        }
         if (using_exercises.length == 0) new_exercise.id = "0"
-      }} style:font-size="1.25rem">delete exercise</button>
-      <button style:font-size="1.25rem"><span>Exercise ID: {exercise.id}</span></button>
+      }} style:font-size="1.25rem" style:cursor="pointer">delete exercise</button>
+      <span style:font-size="1.375rem">Exercise ID: {exercise.id}</span>
     </div>
   {/each}
 </div>

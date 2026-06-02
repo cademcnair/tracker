@@ -64,7 +64,7 @@
   {/if}
 </div>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .full {
     width: 100%;
     text-align: center;
@@ -123,6 +123,7 @@
     display: inline-block;
     border: 5px solid black;
     padding: .5rem;
+    background-color: white;
   }
   .name {
     width: 300px;
