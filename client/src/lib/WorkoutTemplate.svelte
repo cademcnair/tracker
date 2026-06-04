@@ -1,15 +1,15 @@
 <script lang="ts">
   import Exercise from "./Exercise.svelte";
-  import ExerciseSets from "./ExerciseSets.svelte";
   import type { Exercise as ExerciseType, Workout } from "./types";
   import { READONLY, EDIT_PASSIVE, EDIT_PROACTIVE, EDIT_COMPLEX_PASSIVE, EDIT_COMPLEX_PROACTIVE, clone } from "./utils";
 
-  let {workout, all_exercises, view_mode, save_changes, save_changes_exercise}: {
+  let {workout, all_exercises, view_mode, save_changes, save_changes_exercise, update_exercises_index}: {
     workout: Workout<false>,
     all_exercises: ExerciseType[],
     view_mode: typeof READONLY | typeof EDIT_PROACTIVE | typeof EDIT_PASSIVE | typeof EDIT_COMPLEX_PROACTIVE | typeof EDIT_COMPLEX_PASSIVE,
     save_changes?: (w: Workout<false>) => Promise<void> | void,
-    save_changes_exercise?: (id: string, e: ExerciseType) => (Promise<void> | void)
+    save_changes_exercise?: (id: string, e: ExerciseType) => (Promise<void> | void),
+    update_exercises_index: number
   } = $props();
 
   // svelte-ignore state_referenced_locally
@@ -48,21 +48,23 @@
       {@const current_exercise = $state.snapshot(all_exercises).find(e => e.id == exercise) as ExerciseType}
       <div class="exercise-display" class:normal={exercise_mode == VIEW_ONLY || exercise_mode == ADDING}>
         <div class="exercise">
-          <Exercise 
-            exercise={current_exercise} 
-            view_mode={
-              view_mode == READONLY ? READONLY : 
-              ((view_mode == EDIT_PROACTIVE || view_mode == EDIT_PASSIVE) ? 
-              EDIT_PROACTIVE : EDIT_COMPLEX_PROACTIVE)
-            }
-            save_changes={(c) => {
-              if (view_mode == EDIT_PROACTIVE || view_mode == EDIT_COMPLEX_PROACTIVE) {
-                if(save_changes_exercise) {
-                  save_changes_exercise(exercise, c)
-                }
-              } else q.push([exercise, c])
-            }}
-          />
+          {#key update_exercises_index}
+            <Exercise 
+              exercise={current_exercise} 
+              view_mode={
+                view_mode == READONLY ? READONLY : 
+                ((view_mode == EDIT_PROACTIVE || view_mode == EDIT_PASSIVE) ? 
+                EDIT_PROACTIVE : EDIT_COMPLEX_PROACTIVE)
+              }
+              save_changes={(c) => {
+                if (view_mode == EDIT_PROACTIVE || view_mode == EDIT_COMPLEX_PROACTIVE) {
+                  if(save_changes_exercise) {
+                    save_changes_exercise(exercise, c)
+                  }
+                } else q.push([exercise, c])
+              }}
+            />
+          {/key}
         </div>
         <div class="option">
           {#if exercise_mode == DELETING}
@@ -123,15 +125,40 @@
       <button class="top" onclick={() => exercise_mode = VIEW_ONLY}>exit</button>
     {/if}
   {/if}
+  {#if view_mode == EDIT_COMPLEX_PASSIVE || view_mode == EDIT_PASSIVE}
+    <button class="save" onclick={() => {
+      if (save_changes) save_changes(using_workout)
+      if (save_changes_exercise) q.forEach(i => save_changes_exercise(i[0], i[1]))
+    }}>save</button>
+  {/if}
 </div>
 
+
 <style scoped lang="scss">
+  input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.5rem;
+    border-radius: 0.25rem;
+    border: none;
+    background-color: lightgray;
+  }
   .exercise-display:not(:first-of-type) {
     margin-top: 0.5rem;
   }
+  .save {
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    cursor: pointer;
+    background-color: lightgray;
+    border-radius: .5rem;
+    border: none;
+  }
   .exercise-display:not(.normal) {
     display: grid;
-    grid-template-columns: calc(354px * .85) calc(354px * .15);
+    grid-template-columns: calc(379px * .85) calc(379px * .15);
     .exercise :global(.main) {
       transform: scaleX(0.85) translateX(-30.55px);
     }
@@ -182,13 +209,13 @@
     padding: .5rem;
   }
   .name {
-    width: 326px;
+    width: 351px;
     font-size: 1.5rem;
     font-style: italic;
     font-weight: 500;
   }
   textarea {
-    width: 326px;
+    width: 351px;
     font-size: 1.5rem;
     resize: none;
   }

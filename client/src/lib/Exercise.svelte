@@ -126,13 +126,13 @@
     background-color: white;
   }
   .name {
-    width: 300px;
+    width: 325px;
     font-size: 1.5rem;
     font-style: italic;
     font-weight: 500;
   }
   textarea {
-    width: 300px;
+    width: 325px;
     font-size: 1.5rem;
     resize: none;
   }

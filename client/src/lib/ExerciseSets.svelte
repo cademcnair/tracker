@@ -91,7 +91,7 @@
           ({set[0].weight}{set[0].weight != 1 ? "lbs" : "lb"})
         {/if}
         {#if d != processed_set.length - 1}
-          ->&nbsp;
+          →&nbsp;
         {/if}
       {/each}
     </svelte:element>
@@ -169,7 +169,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: min(calc(100vw - 10rem), 20rem);
+    width: min(calc(100vw - 5rem), 25rem);
     &:not(.editing-view-basic) {
       position: static !important;
     }
@@ -186,7 +186,7 @@
     width: fit-content;
     &:not(.editing-view-basic) {
       position-anchor: --body;
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       z-index: 20;

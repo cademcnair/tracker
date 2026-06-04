@@ -1,5 +1,5 @@
 <script lang="ts">
-  const SERVER = "http://localhost:3000/"
+  const SERVER = "http://192.168.1.153:3000/"
 
   import { onMount } from "svelte";
   import type { User, Day, Food, Weight, Workout, Exercise } from "./lib/types";
@@ -334,7 +334,18 @@
 
 {#if page != "signup" && page != "error"}
   <div class="header">
-    <input type="text" placeholder="run a command..." autocorrect="off" autocapitalize="off" spellcheck="false" autocomplete="off" bind:value={command} class="command" onkeyup={e => {if (e.key == "Enter") run_command()}}>
+    <input 
+      type="number" 
+      placeholder="run a command..." 
+      autocorrect="off" 
+      autocapitalize="off" 
+      spellcheck="false" 
+      autocomplete="off" 
+      bind:value={command} 
+      class="command" 
+      onkeyup={e => {if (e.key == "Enter") run_command()}} 
+      onfocusout={function() {this.type = "number"}}
+      onfocusin={function() {this.type = "text"}}>
     {#if normal_command}
       {@const foods = narrow_foods(db.foods, command)}
       {@const food = foods.length == 0 ? {"name":"Nothing","calories":0,"protein":0,"id":"-2","carbs":0,"fat":0,"saturated_fat":0,"sodium":0} : foods[0]}
