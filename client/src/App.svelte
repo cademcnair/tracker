@@ -296,6 +296,7 @@
   }
 
   let command = $state("");
+  let weight_command = $derived(command.length > 0 && !isNaN(Number(command)))
   let normal_command = $derived(command.length > 0 && special_commands[command.split(" ")[0].toLowerCase()] === undefined)
 
   function narrow_foods(foods: Food[], command: string) {
@@ -313,7 +314,13 @@
   }
 
   function run_command() {
-    if (normal_command) {
+    if (weight_command) {
+      let amount = Number(command)
+      if (isNaN(amount)) return;
+      let weight: Weight = { date: today(), weight: amount } 
+      ;(find_today(db.days) as Day).weights.push(weight)
+      db.weights.push(weight); db = {...db}; command = ""
+    } else if (normal_command) {
       const food = narrow_foods(db.foods, command)[0]
       const a = amount(command)
       if (a == 0 || food === undefined || food === null) {command = ""; return;}
@@ -346,7 +353,11 @@
       onkeyup={e => {if (e.key == "Enter") run_command()}} 
       onfocusout={function() {this.type = "number"}}
       onfocusin={function() {this.type = "text"}}>
-    {#if normal_command}
+    {#if weight_command}
+      <div class="food-preview">
+        <h2>Log weight as <span>{command}lbs</span></h2>
+      </div>
+    {:else if normal_command}
       {@const foods = narrow_foods(db.foods, command)}
       {@const food = foods.length == 0 ? {"name":"Nothing","calories":0,"protein":0,"id":"-2","carbs":0,"fat":0,"saturated_fat":0,"sodium":0} : foods[0]}
       <div class="food-preview">

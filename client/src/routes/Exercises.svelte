@@ -134,7 +134,14 @@
     {#if exercise.name.toLowerCase().includes(exercise_search.toLowerCase())}
       <div class="exercise">
         {#key change_exercises[d]}
-          <Exercise exercise={exercise} view_mode={EDIT_COMPLEX_PROACTIVE} save_changes={(c) => {using_exercises[d] = c}}/>
+          <Exercise exercise={exercise} view_mode={EDIT_COMPLEX_PROACTIVE} save_changes={(c) => {
+            using_exercises[d] = c
+            change_workout_exercises.forEach((_, dd) => {
+              if (using_workouts[dd].exercises.includes(exercise.id)) {
+                ++change_workout_exercises[dd]
+              }
+            })
+          }}/>
         {/key}
         <button onclick={() => {
           if (confirm(`Are you sure you want to delete the exercise "${exercise.name}" / ID = ${exercise.id}?`)) {
