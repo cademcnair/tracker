@@ -40,6 +40,9 @@
         document.removeEventListener("click", unlock)
         document.removeEventListener("touchstart", unlock)
         document.removeEventListener("keydown", unlock)
+        document.addEventListener("click", () => window.alarm.pause())
+        document.addEventListener("touchstart", () => window.alarm.pause())
+        document.addEventListener("keydown", () => window.alarm.pause())
         have_audio = true; clearInterval(intv)
       }
 

@@ -67,3 +67,23 @@ export function make_workout(w: Workout<false>, db: User): Workout<true> {
   };
   return ans;
 }
+
+export const month: any = {
+  "00": "Jan",
+  "01": "Feb",
+  "02": "Mar",
+  "03": "Apr",
+  "04": "May",
+  "05": "Jun",
+  "06": "Jul",
+  "07": "Aug",
+  "08": "Sep",
+  "09": "Oct",
+  "10": "Nov",
+  "11": "Dec"
+}
+export const make_day_fancy: (d: string) => string =
+  (d) => (d.startsWith("0") ? d.replace("0", "") : d) + (d.startsWith("1") ? "th" : d.endsWith("1") ? "st" : d.endsWith("2") ? "nd" : d.endsWith("3") ? "rd" : "th")
+export function make_fancy(d: number): string {
+  return `${month[String(d).slice(4, 6)]} ${make_day_fancy(String(d).slice(6, 8))}, ${String(d).slice(0, 4)}`
+}

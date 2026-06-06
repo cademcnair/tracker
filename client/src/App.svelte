@@ -296,7 +296,7 @@
   }
 
   let command = $state("");
-  let weight_command = $derived(command.length > 0 && !isNaN(Number(command)))
+  let weight_command = $derived(command.length > 0 && !command.includes(" ") && !isNaN(Number(command)))
   let normal_command = $derived(command.length > 0 && special_commands[command.split(" ")[0].toLowerCase()] === undefined)
 
   function narrow_foods(foods: Food[], command: string) {
@@ -352,7 +352,9 @@
       bind:value={command} 
       class="command" 
       onkeyup={e => {if (e.key == "Enter") run_command()}} 
-      onfocusout={function() {this.type = "number"}}
+      onfocusout={function() {this.type = "number"; setTimeout(() => {
+        if (document.querySelector("input.command") != document.activeElement) command = ""
+      }, 100)}}
       onfocusin={function() {this.type = "text"}}>
     {#if weight_command}
       <div class="food-preview">
