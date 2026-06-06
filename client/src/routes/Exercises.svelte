@@ -169,7 +169,7 @@
 <input type="text" placeholder="Exercise name" bind:value={new_exercise.name} onkeydown={(e) => {if(e.key == "Enter") make_new_exercise()}}>
 <button disabled={new_exercise.name.length == 0} onclick={make_new_exercise}>create</button>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .workouts {
     display: grid;
     gap: 1rem;

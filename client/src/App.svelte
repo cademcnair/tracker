@@ -2,7 +2,7 @@
   const SERVER = "http://192.168.1.153:3000/"
 
   import { onMount } from "svelte";
-  import type { User, Day, Food, Weight, Workout, Exercise } from "./lib/types";
+  import type { User, Day, Food, Weight, Workout as WorkoutType, Exercise } from "./lib/types";
   import { find_today, today, capitalize, NICE_MACROS, round, clone } from "./lib/utils";
 
   let db: User = $state({
@@ -22,7 +22,7 @@
     days: [] as Day[],
     foods: [] as Food[],
     exercises: [] as Exercise[],
-    workouts: [] as Workout<false>[],
+    workouts: [] as WorkoutType<false>[],
     weights: [] as Weight[]
   });
   let page: string = $state("signup");
@@ -336,6 +336,7 @@
   import Home from "./routes/Home.svelte";
   import Settings from "./routes/Settings.svelte";
   import Exercises from "./routes/Exercises.svelte";
+  import Workout from "./routes/Workout.svelte";
 
 </script>
 
@@ -396,6 +397,8 @@
     <Settings bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {:else if page == "exercises"}
     <Exercises bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
+  {:else if page == "workout"}
+    <Workout bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {/if}
 </div>
 
@@ -408,7 +411,7 @@
     <div class="footer-nav">
       Go to:
       <select bind:value={page}>
-        {#each ["home", "settings", "exercises"] as place}
+        {#each ["home", "settings", "exercises", "workout"] as place}
           <option value={place} selected={page == place}>{capitalize(place)}</option>
         {/each}
       </select>

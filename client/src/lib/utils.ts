@@ -1,4 +1,4 @@
-import type { Day, Macro, Unit, MacroSettingName, Food } from "./types"
+import type { Day, Macro, Unit, MacroSettingName, Food, Workout, User, Exercise } from "./types"
 
 export function today () {
   const date = new Date()
@@ -56,3 +56,14 @@ export const EDIT_PASSIVE = 2;
 export const EDIT_COMPLEX_PROACTIVE = 3;
 export const EDIT_COMPLEX_PASSIVE = 4;
 export const str = JSON.stringify;
+
+export function make_workout(w: Workout<false>, db: User): Workout<true> {
+  let ans: Workout<true> = {
+    completed: false,
+    name: w.name,
+    exercises: w.exercises.map(i => [i, clone(db.exercises.find(ii => ii.id == i)) as Exercise, []]),
+    notes: w.notes,
+    color: w.color
+  };
+  return ans;
+}

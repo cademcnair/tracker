@@ -13,13 +13,17 @@ export interface Food {
   sodium: number;
 }
 
-// completed = true; template = false
-export interface Workout<T extends boolean> {
+type WorkoutSimple<T extends boolean> = {
   name: string;
-  exercises: (T extends true ? [string, Exercise, ExerciseSet[]] : string)[];
+  exercises: (T extends true ? HappeningExercise : string)[];
   notes: string;
   color: string;
 }
+
+export type HappeningExercise = [string, Exercise, ExerciseSet[]]
+
+// completed/happening = true; template = false
+export type Workout<T extends boolean> = T extends true ? ({completed: boolean} & WorkoutSimple<T>) : WorkoutSimple<T>;
 
 export interface Exercise {
   id: string;

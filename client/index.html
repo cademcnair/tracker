@@ -15,11 +15,39 @@
           color: black !important;
         }
       }
+      html, body {
+        height: 100%;
+      }
     </style>
   </head>
   <body>
     <div id="app"></div>
     <script>setInterval(()=>window.dispatchEvent(new Event('resize')), 100)</script>
+    <script>
+
+      window.alarm = new Audio("/alarm.mp3")
+      window.alarm.loop = true
+      let have_audio = false
+      let intv = setInterval(()=>{
+        if (have_audio) return;
+        document.addEventListener("click", unlock)
+        document.addEventListener("touchstart", unlock)
+        document.addEventListener("keydown", unlock)
+      }, 100)
+      function unlock() {
+        if (have_audio) return;
+        window.alarm.play().finally(_ => window.alarm.pause())
+        document.removeEventListener("click", unlock)
+        document.removeEventListener("touchstart", unlock)
+        document.removeEventListener("keydown", unlock)
+        have_audio = true; clearInterval(intv)
+      }
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => {});
+        navigator.mediaSession.setActionHandler('pause', () => {});
+      }
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
