@@ -1,5 +1,5 @@
 <script lang="ts">
-  const SERVER = "/server/" // must end in a slash!
+  const SERVER = "http://192.168.1.153:3000/" // must end in a slash!
 
   import { onMount } from "svelte";
   import type { User, Day, Food, Weight, Workout as WorkoutType, Exercise } from "./lib/types";
@@ -401,6 +401,10 @@
     <Exercises bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {:else if page == "workout"}
     <Workout bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
+  {:else if page == "error"}
+    <p>Some error occured:</p>
+    <p>{error}</p>
+    <p><button onclick={() => page = "home"}>ignore and return home</button></p>
   {/if}
 </div>
 

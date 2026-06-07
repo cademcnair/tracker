@@ -1,5 +1,4 @@
 <script lang="ts">
-    import e from "cors";
   import Exercise from "../lib/Exercise.svelte";
   import * as t from "../lib/types";
   import { clone, EDIT_COMPLEX_PASSIVE, find_today, make_fancy, make_workout, READONLY, round, str } from "../lib/utils";
@@ -48,7 +47,7 @@
   type recent_workouts_helper_type = [number, [t.Workout<true>, number, number][]];
   let recent_workouts: recent_workouts_helper_type[1] = $derived((db.days.toReversed() as any[]).reduce((a, i, d) => {
     if (a[0] <= 0) return a
-    let width = Math.min(a[0], i.workouts.length - 1)
+    let width = Math.min(a[0], i.workouts.length)
     let next = clone(a[1]), using = i.workouts.map((ii: t.Workout<true>, dd: number) => [ii, dd])
       .slice(-1 * width).map((ii: [t.Workout<true>, number]) => [ii[0], i.date, ii[1]]);
     for (let ii = using.length - 1; ii > -1; --ii) next.push(using[ii]);
@@ -56,9 +55,11 @@
   }, [look_back, [] as unknown] as recent_workouts_helper_type)[1])
   let target = $derived(exercise_focus == null ? null : (exercise_focus as t.HappeningExercise)[1].sets[(exercise_focus as t.HappeningExercise)[2].length])
   $effect(() => {
-    if (flash_left - new Date().getTime() > 0) setTimeout(() => {
-      flash_left += 1
-    }, 100)
+    if (flash_left - new Date().getTime() > 0) {
+      setTimeout(() => {
+        flash_left = 0;
+      }, flash_left - new Date().getTime() + 100);
+    }
   })
 </script>
 
@@ -314,7 +315,7 @@
 <style lang="scss" scoped>
   .flash {
     background-color: white;
-    position: absolute;
+    position: fixed;
     z-index: 100;
     top: 0;
     left: 0;
@@ -327,6 +328,7 @@
     font-size: 5rem;
     font-weight: 900;
     color: green;
+    pointer-events: none;
     p {
       margin: 0;
     }

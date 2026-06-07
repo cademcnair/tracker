@@ -2,3 +2,5 @@
 server/data/*.json
 */.DS_Store
 .DS_Store
+*/*.zip
+*.zip
