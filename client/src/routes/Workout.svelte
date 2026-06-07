@@ -1,4 +1,5 @@
 <script lang="ts">
+    import e from "cors";
   import Exercise from "../lib/Exercise.svelte";
   import * as t from "../lib/types";
   import { clone, EDIT_COMPLEX_PASSIVE, find_today, make_fancy, make_workout, READONLY, round, str } from "../lib/utils";
@@ -14,38 +15,51 @@
   let pending_exercises: null | t.HappeningExercise[] = $derived(curr == null || temp == null ? null : curr.exercises.filter(i => i[2].length == 0))
   let search = $state("")
   let exercise_focus: null | t.HappeningExercise = $state(null)
-  let timer_left: number = $state(0);
-  let timer_start: number = $state(-1);
+  let timer_goal: number = $state(Infinity);
+  let timer_start: number = $state(0);
   let number_offset: number = $state(0);
   let wakelock: any = $state(null);
   let sound: boolean = $state(false);
   let readonly: boolean = $state(false);
-  $effect(() => {
-    if (timer_left > 0) setTimeout(() => timer_left -= 0.1, 100)
-    if (timer_left <= 0) {
-      if (timer_start != -1) play_alarm()
-      timer_start = -1
-      if (wakelock != null) {
-        wakelock.release()
-        wakelock = null
-      }
+  let intv: any = $state(null);
+  let timer_update: number = $state(0);
+  let flash_left: number = $state(0);
+
+  function fluff(n: number, l: number) {
+    let str = String(n)
+    if (str.length > l) {
+      while (str.length != l) str = str.split("").filter((_,d,a) => d != a.length-1).join("")
+    } else {
+      while (str.length != l) str += "0"
     }
-  })
+    return str
+  }
 
   function play_alarm() {
-    sound = true
-    ;(window as any).alarm.play()
+    try {
+      clearInterval(intv); intv = null
+    } catch (e) {}
+    sound = true; (window as any).alarm.play()
   }
 
   let reset_exercises = $state(7)
   let look_back = $state(localStorage.getItem("look-back") == null ? 7 : Number(localStorage.getItem("look-back")))
   $effect(() => {localStorage.setItem("look-back", String(look_back))})
-  type recent_workouts_helper_type = [number, [t.Workout<true>, number][]];
+  type recent_workouts_helper_type = [number, [t.Workout<true>, number, number][]];
   let recent_workouts: recent_workouts_helper_type[1] = $derived((db.days.toReversed() as any[]).reduce((a, i, d) => {
-    if (a[0] == 0) return a
+    if (a[0] <= 0) return a
     let width = Math.min(a[0], i.workouts.length - 1)
-    return [a[0] - width, [...a[1], ...i.workouts.slice(-1 * width).map((ii: t.Workout<true>) => [ii, i.date])]]
+    let next = clone(a[1]), using = i.workouts.map((ii: t.Workout<true>, dd: number) => [ii, dd])
+      .slice(-1 * width).map((ii: [t.Workout<true>, number]) => [ii[0], i.date, ii[1]]);
+    for (let ii = using.length - 1; ii > -1; --ii) next.push(using[ii]);
+    return [a[0] - width, next]
   }, [look_back, [] as unknown] as recent_workouts_helper_type)[1])
+  let target = $derived(exercise_focus == null ? null : (exercise_focus as t.HappeningExercise)[1].sets[(exercise_focus as t.HappeningExercise)[2].length])
+  $effect(() => {
+    if (flash_left - new Date().getTime() > 0) setTimeout(() => {
+      flash_left += 1
+    }, 100)
+  })
 </script>
 
 {#if sound == true}
@@ -55,6 +69,14 @@
     sound = false
   }} class="save">stop sound</button>
 {/if}
+
+{#key flash_left}
+  {#if flash_left - new Date().getTime() > 0}
+    <div class="flash">
+      <p>Saved Changes!</p>
+    </div>
+  {/if}
+{/key}
 
 {#if curr == null}
   <h2 style:margin-bottom="0">Past workouts</h2>
@@ -76,11 +98,7 @@
         }}>revisit</button>
         <button onclick={() => {
           if (!confirm(`Do you really want to delete this workout (${workout[0].name} / ${make_fancy(workout[1])})?`)) return;
-          db.days.forEach((i, d) => {
-            let found = i.workouts.findIndex(i => i == workout[0])
-            if (found != -1) db.days[d].workouts.splice(found, 1)
-            console.log(found)
-          })
+          db.days.find(i => i.date == workout[1])?.workouts.splice(workout[2], 1)
           db = { ...db }
         }}>delete</button>
       </li>
@@ -172,8 +190,7 @@
       window.scrollTo(0, 0)
     }}>close</button>
   {/if}
-{:else if timer_left <= 0}
-  {@const target = exercise_focus[1].sets[exercise_focus[2].length]}
+{:else if timer_goal == Infinity}
   {@const total_diff = exercise_focus[2].reduce((a, i, d) => a + (i.reps - (exercise_focus as t.HappeningExercise)[1].sets[d].reps), 0)}
   <div class="mode">
     <div class="control-top control">
@@ -191,6 +208,7 @@
         {/if}
       </div>
       <div class="right">
+        "{exercise_focus[1].name}" /
         {#if target != undefined}
           {target.weight}lbs
         {/if}
@@ -208,6 +226,7 @@
               weight: target.weight
             })
             db = { ...db }
+            flash_left = new Date().getTime() + 500
           }}>
             <span>{target.reps + offset}</span>
             {#if offset == 0}
@@ -222,11 +241,14 @@
           <button onclick={() => number_offset -= 4}>↓</button>
         {/if}
       {:else}
-        <Exercise exercise={exercise_focus[1]} view_mode={EDIT_COMPLEX_PASSIVE} save_changes={(e) => {
-          (exercise_focus as t.HappeningExercise)[1] = clone(e)
-          db.exercises[db.exercises.findIndex(i => i.id == (exercise_focus as t.HappeningExercise)[1].id)] = clone(e)
-          db = {...db}
-        }}/>
+        {#key reset_exercises}
+          <Exercise exercise={exercise_focus[1]} view_mode={EDIT_COMPLEX_PASSIVE} save_changes={(e) => {
+            db.exercises[db.exercises.findIndex(i => i.id == (exercise_focus as t.HappeningExercise)[1].id)] = clone(e)
+            db = {...db}
+          }}/>
+        {/key}
+        <button onclick={() => ++reset_exercises}>see exercise copy</button>
+        (this only changes the template exercise)
       {/if}
     </div>
     <div class="control-bottom control">
@@ -236,36 +258,79 @@
             try {
               wakelock = navigator.wakeLock.request("screen")
             } catch (e) {}
-            timer_start = timer_left = (exercise_focus as t.HappeningExercise)[1].rest
+            timer_start = new Date().getTime()
+            timer_goal = timer_start + ((exercise_focus as t.HappeningExercise)[1].rest * 1000)
+            intv = setInterval(() => {
+              ++timer_update
+              if ((timer_goal - new Date().getTime()) < 0) {
+                play_alarm()
+                timer_goal = Infinity
+              }
+            }, 100)
           }}>timer ({exercise_focus[1].rest}s)</button>
         {/if}
       </div>
       <div class="right">
         <span>net = {total_diff == 0 ? "" : total_diff > 0 ? "+" : "-"}{Math.abs(total_diff)}</span>
-        <button onclick={() => exercise_focus = null}>exit</button>
+        <button onclick={() => {
+          exercise_focus = null
+          number_offset = 0
+        }}>exit</button>
       </div>
     </div>
   </div>
 {:else}
   <div class="mode">
     <div class="control-top control">
-      <button onclick={() => {
-        if (timer_left < 20 || confirm("Do you want to end the timer?")) {
-          timer_start = -1
-          timer_left = 0
-        }
-      }}>exit timer</button>
+      <div class="left">
+        <button onclick={() => {
+          if ((timer_goal - new Date().getTime()) <= (20 * 1000) || confirm("Do you want to end the timer?")) {
+            timer_goal = Infinity
+            try {
+              clearInterval(intv);
+              intv = null
+            } catch (e) {}
+          }
+        }}>exit timer</button>
+      </div>
+      <div class="right">
+        "{exercise_focus[1].name}" /
+        {#if target != undefined}
+          {target.weight}lbs
+        {/if}
+      </div>
     </div>
-    <div class="center timer">
-      {round(timer_left, 2)}
-    </div>
-    <div class="control-bottom control">
-      <progress max="1" value={timer_left/timer_start}></progress>
-    </div>
+    {#key timer_update}
+      <div class="center timer">
+        {fluff(round((timer_goal - new Date().getTime()) / 1000, 3), 5)}
+      </div>
+      <div class="control-bottom control">
+        <progress max="1" value={(new Date().getTime() - timer_start)/(timer_goal-timer_start)}></progress>
+      </div>
+    {/key}
   </div>
 {/if}
 
 <style lang="scss" scoped>
+  .flash {
+    background-color: white;
+    position: absolute;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    font-size: 5rem;
+    font-weight: 900;
+    color: green;
+    p {
+      margin: 0;
+    }
+  }
   ul {
     margin: 0;
     padding: 0;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  const SERVER = "http://192.168.1.153:3000/"
+  const SERVER = "/server/" // must end in a slash!
 
   import { onMount } from "svelte";
   import type { User, Day, Food, Weight, Workout as WorkoutType, Exercise } from "./lib/types";
@@ -423,7 +423,7 @@
 {/if}
 
 
-<style lang="scss">
+<style lang="scss" scoped>
   :global(span) {
     background-color: yellow;
     font-weight: 700;

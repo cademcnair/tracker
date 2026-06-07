@@ -5,7 +5,7 @@
   "author": "cade <cademcnair2009@icloud.com>",
   "license": "MIT",
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "cors": "^1.0.0",
+    "express": "^4.0.0"
   }
 }

@@ -102,7 +102,7 @@
           save_changes_exercise={(id, e) => {
             using_exercises[using_exercises.findIndex(i => i.id == id)] = e
             ++change_exercises[using_exercises.findIndex(i => i.id == id)]
-            change_workout_exercises.forEach((i, dd) => {
+            change_workout_exercises.forEach((_, dd) => {
               if (using_workouts[dd].exercises.includes(id) && d != dd) {
                 ++change_workout_exercises[dd]
               }
