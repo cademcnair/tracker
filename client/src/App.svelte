@@ -2,7 +2,7 @@
   const SERVER = "http://192.168.1.153:3000/" // must end in a slash!
 
   import { onMount } from "svelte";
-  import type { User, Day, Food, Weight, Workout as WorkoutType, Exercise } from "./lib/types";
+  import type { User, Day, Food, Weight as WeightType, Workout as WorkoutType, Exercise } from "./lib/types";
   import { find_today, today, capitalize, NICE_MACROS, round, clone, format_date, make_fancy } from "./lib/utils";
 
   let db: User = $state({
@@ -28,7 +28,7 @@
     foods: [] as Food[],
     exercises: [] as Exercise[],
     workouts: [] as WorkoutType<false>[],
-    weights: [] as Weight[]
+    weights: [] as WeightType[]
   });
   let page: string = $state("signup");
   let error: any = $state(null);
@@ -322,7 +322,7 @@
     if (weight_command) {
       let amount = Number(command)
       if (isNaN(amount)) return;
-      let weight: Weight = { date: today(), weight: amount } 
+      let weight: WeightType = { date: today(), weight: amount } 
       ;(find_today(db.days) as Day).weights.push(weight)
       db.weights.push(weight); db = {...db}; command = ""
     } else if (normal_command) {
@@ -342,6 +342,7 @@
   import Settings from "./routes/Settings.svelte";
   import Exercises from "./routes/Exercises.svelte";
   import Workout from "./routes/Workout.svelte";
+    import Weight from "./routes/Weight.svelte";
 
 </script>
 
@@ -406,6 +407,8 @@
     <Exercises bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {:else if page == "workout"}
     <Workout bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
+  {:else if page == "weight"}
+    <Weight bind:db={db} SERVER={SERVER} bind:page={page} bind:error={error}/>
   {:else if page == "error"}
     <p>Some error occured:</p>
     <p>{error}</p>
@@ -422,7 +425,7 @@
     <div class="footer-nav">
       Go to:
       <select bind:value={page}>
-        {#each ["home", "settings", "exercises", "workout"] as place}
+        {#each ["home", "settings", "exercises", "workout", "weight"] as place}
           <option value={place} selected={page == place}>{capitalize(place)}</option>
         {/each}
       </select>
