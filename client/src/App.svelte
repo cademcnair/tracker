@@ -3,7 +3,7 @@
 
   import { onMount } from "svelte";
   import type { User, Day, Food, Weight, Workout as WorkoutType, Exercise } from "./lib/types";
-  import { find_today, today, capitalize, NICE_MACROS, round, clone } from "./lib/utils";
+  import { find_today, today, capitalize, NICE_MACROS, round, clone, format_date, make_fancy } from "./lib/utils";
 
   let db: User = $state({
     user: "",
@@ -415,7 +415,7 @@
 
 {#if page != "signup" && page != "error"}
   <div class="footer">
-    <i style:font-size="1rem">Hello, {db.user}!</i><br>
+    <i style:font-size="1rem">Hello, {db.user}!{location.search != "" ? ` We're pretending today is "${make_fancy(Number(location.search.replace("?", "")))}"` : ""}</i><br>
     <div class="footer-place">
       Current page: {page.split("").map((i,d) => d == 0 ? i.toUpperCase() : i).join("")}
     </div>

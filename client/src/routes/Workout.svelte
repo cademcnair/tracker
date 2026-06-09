@@ -172,6 +172,7 @@
           exercise[1] = clone(e)
           db.exercises[db.exercises.findIndex(i => i.id == exercise[1].id)] = clone(e)
           db = {...db}
+          flash_left = new Date().getTime() + 500
         }}/>
       {/each}
     </div>
@@ -244,12 +245,14 @@
       {:else}
         {#key reset_exercises}
           <Exercise exercise={exercise_focus[1]} view_mode={EDIT_COMPLEX_PASSIVE} save_changes={(e) => {
+            flash_left = new Date().getTime() + 500
             db.exercises[db.exercises.findIndex(i => i.id == (exercise_focus as t.HappeningExercise)[1].id)] = clone(e)
             db = {...db}
           }}/>
         {/key}
         <button onclick={() => ++reset_exercises}>see exercise copy</button>
-        (this only changes the template exercise)
+        <span>(this only changes the template exercise)</span>
+        <span>Sets: {exercise_focus[2].map(i => String(i.reps)).join("-")}</span>
       {/if}
     </div>
     <div class="control-bottom control">

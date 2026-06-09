@@ -1,8 +1,16 @@
 import type { Day, Macro, Unit, MacroSettingName, Food, Workout, User, Exercise } from "./types"
 
-export function today () {
-  const date = new Date()
+export function format_date (date: Date) {
   return date.getFullYear() * 10000 + date.getMonth() * 100 + date.getDate()
+}
+
+export function today () {
+  if (location.search == "") {
+    const date = new Date()
+    return format_date(date)
+  } else {
+    return Number(location.search.replace("?", ""))
+  }
 }
 
 export function find_today (days: Day[]) {
