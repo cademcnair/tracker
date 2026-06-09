@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { User, Props } from "../lib/types";
+  import ChangeDate from "../lib/ChangeDate.svelte";
+import type { User, Props } from "../lib/types";
   import { MACROS, MACRO_SETTING, NICE_MACROS, clone } from "../lib/utils";
   let {
     db = $bindable(),
@@ -9,7 +10,6 @@
   }: Props = $props();
   let using_db = $state($state.snapshot(db));
   let downloaded = $state(false);
-  let date = $state("")
 </script>
 
 <h2>Settings</h2>
@@ -100,24 +100,7 @@
   location.reload()
 }}>log out of server account / delete locally stored account (requires download of your own data as backup)</button>
 <hr>
-<h3>Change the date (will delete all in progress pages here, date change will be automatically saved though)</h3>
-{#if location.search == ""}
-<input type="date" bind:value={date}>
-<button onclick={() => {
-  try {
-    if (date.length == 0) throw "";
-    let nice = Number(date.replaceAll("-", ""))
-    nice -= 100
-    location.replace("/?" + nice)
-  } catch (e) {
-    alert("Problem with saving new date - most likely incorrectly formatted")
-  }
-}}>save new date</button>
-{:else}
-<button onclick={() => {
-  location.replace("/")
-}}>revert the date back to the current day</button>
-{/if}
+<ChangeDate />
 
 <style scoped lang="scss">
   button {

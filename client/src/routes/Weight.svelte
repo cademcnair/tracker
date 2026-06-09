@@ -4,6 +4,7 @@
   let { db = $bindable(), SERVER, page = $bindable(), error = $bindable() }: t.Props = $props();
   import Chart from "chart.js/auto"
   import { clone, format_date, get_week_number_from_date, make_date_into_date_object, make_fancy, median, today } from "../lib/utils";
+    import ChangeDate from "../lib/ChangeDate.svelte";
 
   let can_disp = $state(false)
   onMount(() => {
@@ -30,8 +31,14 @@
             text: `Weight (${current_view})`
           }
         },
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 0.66,
         responsive: true,
+        scales: {
+          y: {
+            grace: 5
+          }
+        },
         ...screen_size_options
       }
     })
@@ -74,6 +81,7 @@
     }
   }})
   let modifier_velocity = $state(3)
+  let search = $state("")
 </script>
 
 <label>
@@ -107,6 +115,33 @@ Viewing date: {make_fancy(format_date(date_viewing))}
     {/each}
   </tbody>
 </table>
+<details open>
+  <summary>history of all weights</summary>
+  <input type="text" placeholder="search (by date string representation)" bind:value={search}>
+  <table>
+    <tbody>
+      {#each db.weights as i, d}
+        {#if search == "" || make_fancy(i.date).toLowerCase().includes(search.toLowerCase())}
+          <tr>
+            <th>{make_fancy(i.date)}</th>
+            <td>{i.weight}lbs</td>
+            <td><button onclick={() => {
+              if (!confirm(`are you sure you want to delete this record? date: ${make_fancy(i.date)}, weight: ${i.weight}`)) return
+              db.weights.splice(d, 1)
+              const w = (db.days.find(day => day.date === i.date) as t.Day).weights
+              w.splice(w.findIndex(ii => ii.weight == i.weight), 1)
+              db = {...db}
+            }}>delete record</button></td>
+          </tr>
+        {/if}
+      {/each}
+    </tbody>
+  </table>
+</details>
+<details open>
+  <summary>change the date</summary>
+  <ChangeDate />
+</details>
 <div class="dummy" bind:clientWidth={width}></div>
 
 <style lang="scss">

@@ -7,6 +7,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//
+// -----------------------
+// ***********************
+// -----------------------
+// 
+// ADD /server/... for cPanel file upload
+//
+// -----------------------
+// ***********************
+// -----------------------
+// 
+
+
 app.post("/get", (req, res) => {
   try {
     if (req.body.user.includes("..")) return res.status(403).send("Invalid username");

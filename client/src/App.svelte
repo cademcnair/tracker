@@ -1,5 +1,5 @@
 <script lang="ts">
-  const SERVER = "http://192.168.1.153:3000/" // must end in a slash!
+  const SERVER = "http://localhost:3000/" // must end in a slash!
 
   import { onMount } from "svelte";
   import type { User, Day, Food, Weight as WeightType, Workout as WorkoutType, Exercise } from "./lib/types";
