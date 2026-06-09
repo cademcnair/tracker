@@ -43,7 +43,7 @@
       if (request.ok) {
         let data = await request.text() as string
         if (data == "true") {
-          alert("Username already exists. Please choose another username.");
+          alert("Username already exists. Please choose another username. (username could be illegal too - no '..' or '/' is allowed)");
           return;
         }
       } else {
@@ -58,8 +58,30 @@
     localStorage.setItem("store_method", store_method);
     localStorage.setItem("user", user);
     localStorage.setItem("pass", pass);
-    page = "home";
+    if (store_method === "client") {
+      localStorage.setItem("data", JSON.stringify(db))
+    } else if (method === "create") {
+      const request = await fetch(`${SERVER}post`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user: user,
+          pass: pass,
+          data: db
+        })
+      })
+      if (!request.ok) {
+        page = "error"
+        error = "Something went wrong with the server, your account could not be loaded with the proper data."
+        localStorage.clear()
+        return;
+      }
+    }
+    page = "home"
   }
+  let show_home = $state(true)
 </script>
 
 {#if db.user.length == 0}
@@ -78,5 +100,7 @@
   <button onclick={()=>create("server", "login")} disabled={pass.length == 0 || user.length == 0 || pass != verify_pass}>Login</button>
 {:else if db.user.length != 0}
   <p>Loading...</p>
-  <button onclick={() => page = "home"}>Go home</button>
+  {#if show_home}
+    <button onclick={() => page = "home"}>Go home</button>
+  {/if}
 {/if}

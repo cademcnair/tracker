@@ -19,7 +19,12 @@
     },
     store_method: "client",
     page: "signup",
-    days: [] as Day[],
+    days: [{
+      date: today(),
+      foods: [],
+      workouts: [],
+      weights: []
+    }] as Day[],
     foods: [] as Food[],
     exercises: [] as Exercise[],
     workouts: [] as WorkoutType<false>[],

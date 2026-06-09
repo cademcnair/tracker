@@ -23,7 +23,7 @@ app.post("/get", (req, res) => {
 
 app.post("/post", (req, res) => {
   try {
-    if (req.body.user.includes("..")) return res.status(403).send("Invalid username");
+    if (req.body.user.includes("..") || req.body.user.includes("/")) return res.status(403).send("Invalid username");
     const data = JSON.parse(readFileSync("data/" + req.body.user + ".json", "utf8"));
     if (data.pass == req.body.pass) writeFileSync("data/" + req.body.user + ".json", JSON.stringify(req.body.data), "utf8")
     else res.status(401).send("Incorrect passcode");
@@ -35,10 +35,14 @@ app.post("/post", (req, res) => {
 
 app.post("/create", (req, res) => {
   try {
-    if (req.body.user.includes("..")) return res.status(403).send("Invalid username");
+    if (req.body.user.includes("..") || req.body.user.includes("/")) return res.status(403).send("Invalid username");
     readFileSync("data/" + req.body.user + ".json", "utf8");
     res.send("true");
   } catch (e) {
+    writeFileSync("data/" + req.body.user + ".json", JSON.stringify({
+      user: req.body.user,
+      pass: req.body.pass
+    }))
     res.send("false");
   }
 })
